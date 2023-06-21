@@ -10,3 +10,8 @@ pydantic
 abstractcp
 polars
 typing-extensions
+httpx
+oauthlib
+rx
+qrcode
+cryptography

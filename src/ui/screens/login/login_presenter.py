@@ -11,3 +11,6 @@ class LoginPresenter(MvpPresenter, LoginPresenterProtocol):
 
     def handle_login(self) -> None:
         self.data_source.login()
+
+    def got_to_detail(self) -> None:
+        self.data_source.got_to_details()

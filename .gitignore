@@ -79,6 +79,12 @@ target/
 # exclude data from source control by default
 /data/
 
+# exclude venv from source control by default
+/face_ui_venv/
+
+# exclude models from source control by default
+/src/models/
+
 # Mac OS-specific storage files
 .DS_Store
 
