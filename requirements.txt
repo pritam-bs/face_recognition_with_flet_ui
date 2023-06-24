@@ -15,3 +15,11 @@ oauthlib
 rx
 qrcode
 cryptography
+numpy
+scikit-learn
+keras
+opencv-python
+tqdm
+tensorflow
+torch
+Pillow

@@ -32,11 +32,11 @@ class LoginView(MvpView, LoginViewProtocol):
         horizontal_alignment=flet.CrossAxisAlignment.CENTER,
         appbar=flet.AppBar(
             leading=Icon(icons.GRID_GOLDENRATIO_ROUNDED),
-            leading_width=100,
+            leading_width=40,
             title=Text("Access Control Console",
                        style=flet.TextThemeStyle.TITLE_LARGE),
             center_title=False,
-            toolbar_height=75,
+            toolbar_height=50,
         )
     )
 
@@ -60,7 +60,8 @@ class LoginView(MvpView, LoginViewProtocol):
 
     def _get_ui(self) -> flet.Column:
         return flet.Column(controls=[
-            Text(value="Welcome to the access control console. \nLog in with a user that has access control device privilege."),
+            Text(value="Welcome to the access control console. \nLog in with a user that has access control device privilege.",
+                 style=flet.TextThemeStyle.TITLE_LARGE),
             ElevatedButton(
                 content=flet.Row(controls=[
                     Text("Login"),

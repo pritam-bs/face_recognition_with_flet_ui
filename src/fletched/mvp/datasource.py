@@ -24,8 +24,9 @@ class MvpDataSource(Abstract, Observable):
     def update_model_partial(self, changes: dict) -> bool:
         model_map = self.current_model.dict()
         for k, v in model_map.items():
-            if changes[k] != v:
-                model_map[k] = changes[k]
+            changed_value = changes.get(k)
+            if changed_value is not None:
+                model_map[k] = changed_value
         return self.update_model_complete(model_map)
 
     def update_model_complete(self, new_model: dict) -> bool:

@@ -18,8 +18,6 @@ class InfoSidebarView(flet.UserControl):
         self.total_booked_breakfast_ref = flet.Ref[flet.Text]()
         self.total_booked_lunch_ref = flet.Ref[flet.Text]()
         self.total_emergency_booked_ref = flet.Ref[flet.Text]()
-        self.total_breakfast_consumed_ref = flet.Ref[flet.Text]()
-        self.total_lunch_consumed_ref = flet.Ref[flet.Text]()
 
     def did_mount(self):
         self.update_list(employee_list=employees)
@@ -37,17 +35,11 @@ class InfoSidebarView(flet.UserControl):
                                           value="Total Lunch: 0"),
                                 flet.Text(ref=self.total_emergency_booked_ref,
                                           value="Emergency Count: 0"),
-                                flet.Divider(
-                                    height=1, color=flet.colors.WHITE),
-                                flet.Text(ref=self.total_breakfast_consumed_ref,
-                                          value="Consumed Breakfast: 0"),
-                                flet.Text(ref=self.total_breakfast_consumed_ref,
-                                          value="Consumed Lunch: 0"),
                             ],
                             alignment=flet.MainAxisAlignment.START,
                             horizontal_alignment=flet.CrossAxisAlignment.START,
                         ),
-                        padding=20,
+                        padding=10,
                     ),
                     expand=False,
                     width=300,
@@ -70,15 +62,9 @@ class InfoSidebarView(flet.UserControl):
             [employee for employee in employee_list if employee.booked_meals and Meal.LUNCH in employee.booked_meals])
         total_emergency_count = sum(
             employee.isEmergency for employee in employee_list)
-        total_breakfast_consumed_count = len(
-            [employee for employee in employee_list if employee.booked_meals and Meal.BREAKFAST in employee.consumed_meals])
-        total_lunch_consumed_count = len(
-            [employee for employee in employee_list if employee.booked_meals and Meal.LUNCH in employee.consumed_meals])
 
         self.total_booked_breakfast_ref.current.value = f"Total Breakfast: {total_booked_breakfast_count}"
         self.total_booked_lunch_ref.current.value = f"Total Lunch: {total_booked_lunch_count}"
         self.total_emergency_booked_ref.current.value = f"Emergency Count: {total_emergency_count}"
-        self.total_breakfast_consumed_ref.current.value = f"Total Breakfast Consumed: {total_breakfast_consumed_count}"
-        self.total_lunch_consumed_ref.value = f"Total Lunch Consumed: {total_lunch_consumed_count}"
 
         self.update()
