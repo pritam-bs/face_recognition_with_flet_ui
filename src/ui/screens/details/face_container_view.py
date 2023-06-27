@@ -35,6 +35,7 @@ class FaceContainerView(flet.UserControl, FaceContainerProtocol):
                     src_base64=Images().camera_image_data,
                     width=200,
                     height=200,
+                    border_radius=10,
                     fit=flet.ImageFit.COVER,
                 ),
                 flet.Text("Hello Name of the employee",

@@ -19,7 +19,7 @@ class KnnSearchProcessor:
             loaded_index = json.load(f)
 
         self.knn_model = loaded_knn_model
-        self.index_vs_name_dict = {int(k): v for k, v in loaded_index.items()}
+        self.index_vs_id_dict = {int(k): v for k, v in loaded_index.items()}
 
     def search(self, embeddings):
         unknown_person_embedding = embeddings[0, :].reshape(
@@ -31,5 +31,5 @@ class KnnSearchProcessor:
         if min_distance_value > self.distance_threshold:
             return "Unknown"
         index = indices[0, min_distance_index]
-        matched_person_name = self.index_vs_name_dict[index[0]]
-        return matched_person_name
+        matched_person_id = self.index_vs_id_dict[index[0]]
+        return matched_person_id

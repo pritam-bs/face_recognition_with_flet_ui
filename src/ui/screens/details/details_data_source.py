@@ -16,6 +16,8 @@ from rx.subject.asyncsubject import AsyncSubject
 from logger import logger
 from app_errors.app_error import ErrorModel
 from storage.client_storage import ClientStorage
+from recognition.feature_generator.arc_face_feature_generator import ArcFaceGenerator
+from recognition.knn_search_processor import KnnSearchProcessor
 
 
 class DetailsModel(MvpModel):
@@ -35,6 +37,8 @@ class DetailsDataSource(MvpDataSource):
         self.capture_image = CaptureImage(rtspUrl=None)
         self.cascade_detector = CascadeDetector(image_size=(112, 112))
         self.fasProcessor = FasProcessor()
+        self.arc_face_generator = ArcFaceGenerator()
+        self.knnSearchProcessor = KnnSearchProcessor()
         self._strat_image_producer()
 
     def _strat_image_producer(self):
@@ -48,9 +52,45 @@ class DetailsDataSource(MvpDataSource):
             return
 
         face_image, bbox = self._face_extractor(frame=frame)
-        if face_image is not None and bbox is not None:
+        is_live = None
+        if bbox is not None:
+            is_live = self.fasProcessor.liveness_detector(
+                frame=frame, bbox=bbox, image_format="BGR")
+
+        self._update_image_for_viewing(
+            frame=frame, bbox=bbox, is_live=is_live)
+
+        if face_image is not None and bbox is not None and is_live:
+            embeddings = self._face_embedding_creator(
+                face_image_list=[face_image])
+            self._search(embeddings=embeddings)
+
+    def _face_extractor(self, frame):
+        face_image = None
+        bbox = None
+        if frame is not None:
+            # for index, frame in tqdm(enumerate([frame]), total=len([frame]), desc="Face Extractor"):
+            for index, frame in enumerate([frame]):
+                face_image, bbox = self.cascade_detector.extract_face(
+                    image_array=frame)
+
+        return face_image, bbox
+
+    def _face_embedding_creator(self, face_image_list):
+        if face_image_list is not None:
+            embeddings = self.arc_face_generator.get_feature_vectors(
+                face_image_list)
+        return embeddings
+
+    def _search(self, embeddings):
+        matched_person_id = self.knnSearchProcessor.search(
+            embeddings=embeddings)
+        logger.debug(f"Matched Person's ID: {matched_person_id}")
+
+    def _update_image_for_viewing(self, frame, bbox, is_live):
+        if bbox is not None:
             color = (0, 0, 255)
-            if self.fasProcessor.liveness_detector(frame=frame, bbox=bbox, image_format="BGR"):
+            if is_live is not None and is_live:
                 color = (0, 255, 0)
             x, y, w, h = bbox
             left = x
@@ -69,17 +109,6 @@ class DetailsDataSource(MvpDataSource):
         jpg_as_text = base64.b64encode(buffer)
         self.update_model_complete(
             new_model={"frame_image_base64": jpg_as_text})
-
-    def _face_extractor(self, frame):
-        face_image = None
-        bbox = None
-        if frame is not None:
-            # for index, frame in tqdm(enumerate([frame]), total=len([frame]), desc="Face Extractor"):
-            for index, frame in enumerate([frame]):
-                face_image, bbox = self.cascade_detector.extract_face(
-                    image_array=frame)
-
-        return face_image, bbox
 
     def get_employees_info(self):
         self.update_model_complete(new_model={"is_loading": True})

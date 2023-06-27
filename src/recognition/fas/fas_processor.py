@@ -21,7 +21,7 @@ class FasProcessor:
     model_name_v1 = "4_0_0_80x80_MiniFASNetV1SE.pth"
     model_v2 = None
     model_v1 = None
-    scoreThreshold = 0.99
+    scoreThreshold = 0.01
 
     def __init__(self):
         self.device = torch.device("cuda:{}".format(0)
@@ -103,7 +103,7 @@ class FasProcessor:
         frame = frame.unsqueeze(0).to(self.device)
         with torch.no_grad():
             result = self.model_v2.forward(frame)
-            result = F.softmax(result).cpu().numpy()
+            result = F.softmax(result, dim=1).cpu().numpy()
         return result
 
     def _predict_v1(self, imm_RGB, bbox):
@@ -130,7 +130,7 @@ class FasProcessor:
         frame = frame.unsqueeze(0).to(self.device)
         with torch.no_grad():
             result = self.model_v1.forward(frame)
-            result = F.softmax(result).cpu().numpy()
+            result = F.softmax(result, dim=1).cpu().numpy()
         return result
 
     def liveness_detector(self, frame, bbox, image_format="BGR"):
