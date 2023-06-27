@@ -8,3 +8,6 @@ from ui.screens.details.details_data_source import DetailsDataSource
 class DetailsPresenter(MvpPresenter, DetailsPresenterProtocol):
     data_source: DetailsDataSource
     view: DetailsViewProtocol
+
+    def get_employees(self) -> None:
+        self.data_source.get_employees_info()

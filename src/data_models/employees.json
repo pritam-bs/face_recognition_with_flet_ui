@@ -1,0 +1,119 @@
+[
+  {
+    "employee_id": "BD00165",
+    "name": "Afrina Zahan Mithila",
+    "email": "afrina.zahan@monstar-lab.com",
+    "booked_meals": ["Breakfast", "Lunch", "Snacks"],
+    "consumed_meals": ["Breakfast"],
+    "isEmergency": false
+  },
+  {
+    "employee_id": "BD00088",
+    "name": "Arifena Tamrin",
+    "email": "arifena.tamrin.mlbd@monstar-lab.com",
+    "booked_meals": ["Lunch", "Snacks"],
+    "consumed_meals": ["Lunch"],
+    "isEmergency": false
+  },
+  {
+    "employee_id": "BD00185",
+    "name": "Md. Ashraful Alam",
+    "email": "ashraful.alam@monstar-lab.com",
+    "booked_meals": ["Breakfast", "Lunch", "Snacks"],
+    "isEmergency": false
+  },
+  {
+    "employee_id": "BD00093",
+    "name": "Md. Aslam Hossin",
+    "email": "aslam.hossin@monstar-lab.com",
+    "booked_meals": ["Breakfast", "Lunch", "Snacks"],
+    "isEmergency": true
+  },
+  {
+    "employee_id": "BD00137",
+    "name": "S.M. Eftiar Hossain",
+    "email": "eftiar.hossain@monstar-lab.com",
+    "isEmergency": false
+  },
+  {
+    "employee_id": "BD00129",
+    "name": "Golam Shakib Khan",
+    "email": "shakib.khan@monstar-lab.com",
+    "booked_meals": ["Breakfast", "Lunch", "Snacks"],
+    "consumed_meals": ["Breakfast", "Lunch"],
+    "isEmergency": false
+  },
+  {
+    "employee_id": "BD00233",
+    "name": "Sadiya Isrot Suha",
+    "email": "sadiya.suha@monstar-lab.com",
+    "isEmergency": false
+  },
+  {
+    "employee_id": "BD00178",
+    "name": "Md. Jahid Hasan Naiem",
+    "email": "jahid.hasan@monstar-lab.com",
+    "booked_meals": ["Lunch"],
+    "isEmergency": false
+  },
+  {
+    "employee_id": "BD00132",
+    "name": "Labiba Ibnat",
+    "email": "labiba.ibnat@monstar-lab.com",
+    "booked_meals": ["Breakfast", "Lunch", "Snacks"],
+    "isEmergency": false
+  },
+  {
+    "employee_id": "BD00036",
+    "name": "Md. Mamunur Rashid",
+    "email": "mamunur.rashid@monstar-lab.com",
+    "booked_meals": ["Breakfast", "Lunch", "Snacks"],
+    "consumed_meals": ["Breakfast", "Lunch"],
+    "isEmergency": true
+  },
+  {
+    "employee_id": "BD00125",
+    "name": "M E Jakareya",
+    "email": "mjakareya@monstar-lab.com",
+    "booked_meals": ["Breakfast", "Lunch", "Snacks"],
+    "consumed_meals": ["Lunch"],
+    "isEmergency": false
+  },
+  {
+    "employee_id": "BD00124",
+    "name": "Musaddique Billah Talha",
+    "email": "musaddique.billah@monstar-lab.com",
+    "booked_meals": ["Breakfast", "Lunch"],
+    "isEmergency": false
+  },
+  {
+    "employee_id": "BD00194",
+    "name": "Pijush Mohanto",
+    "email": "pijush.mohanto@monstar-lab.com",
+    "booked_meals": ["Lunch", "Snacks"],
+    "consumed_meals": ["Lunch"],
+    "isEmergency": false
+  },
+  {
+    "employee_id": "BD00010",
+    "name": "Md Redwanul Haque",
+    "email": "redwanul.haque@monstar-lab.com",
+    "booked_meals": ["Lunch"],
+    "isEmergency": false
+  },
+  {
+    "employee_id": "BD00184",
+    "name": "Tanzim Kabir",
+    "email": "tanzim.kabir@monstar-lab.com",
+    "booked_meals": ["Breakfast", "Lunch", "Snacks"],
+    "consumed_meals": ["Breakfast", "Lunch"],
+    "isEmergency": false
+  },
+  {
+    "employee_id": "BD00152",
+    "name": "Utpal Barman",
+    "email": "utpal.barman@monstar-lab.com",
+    "booked_meals": ["Breakfast", "Lunch", "Snacks"],
+    "isEmergency": true
+  }
+]

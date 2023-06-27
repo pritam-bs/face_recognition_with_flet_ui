@@ -37,7 +37,8 @@ class FaceExtractorProcessor:
                 break
             face_image_list = []
             bbs_list = []
-            for index, frame_array in tqdm(enumerate(person.frame_list), total=len(person.face_image_list), desc="Face Extractor {}".format(person.name)):
+            # for index, frame_array in tqdm(enumerate(person.frame_list), total=len(person.face_image_list), desc="Face Extractor {}".format(person.name)):
+            for index, frame_array in enumerate(person.frame_list):
                 bbs, pps, ccs, nimgs = self.yolo_detector.detect_in_image(
                     image=frame_array, image_format="BGR")
                 if len(nimgs) > 0 and nimgs[0] is not None and len(bbs) > 0 and bbs[0] is not None:

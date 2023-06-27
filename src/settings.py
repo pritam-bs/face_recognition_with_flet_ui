@@ -10,6 +10,7 @@ class Settings(BaseSettings):
     token_uri: str = Field(env="TOKEN_URI")
     project_id: str = Field(env="PROJECT_ID")
     log_level: str = Field(env="LOG_LEVEL")
+    opm_base_url: str = Field(env="OPM_BASE_URL")
 
     class Config:
         env_file: str

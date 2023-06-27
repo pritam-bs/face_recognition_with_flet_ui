@@ -1,18 +1,13 @@
 import httpx
-from typing import Optional, TypeVar, Union
-from pydantic import BaseModel
-import rx
 from rx.subject.asyncsubject import AsyncSubject
-import asyncio
+from app_errors.app_error import AppError, ErrorModel, AppException
+from typing import TypeVar, Union, List
+from pydantic import BaseModel, parse_raw_as
 from logger import logger
+import json
+import html2text
 
-T = TypeVar('T', bound=BaseModel)
-ErrorType = Union[httpx.HTTPError, httpx.NetworkError, Exception, BaseModel]
-
-
-class ErrorModel(BaseModel):
-    status_code: int
-    content: Optional[dict]
+T = TypeVar('T', bound=Union[BaseModel, List[BaseModel]])
 
 
 class APIClient:
@@ -22,7 +17,7 @@ class APIClient:
         self.client = httpx.Client(timeout=timeout)
         self.method = "GET"
         self.path = ""
-        self.headers = {}
+        self.headers = {"Content-Type": "application/json"}
         self.params = {}
         self.json = None
 
@@ -41,8 +36,8 @@ class APIClient:
         self.path = path
         return self
 
-    def set_headers(self, headers):
-        self.headers = headers
+    def add_headers(self, headers):
+        self.headers.update(headers)
         return self
 
     def set_params(self, params):
@@ -59,27 +54,40 @@ class APIClient:
             result = self._make_request_sync(model_type=model_type)
             subject.on_next(result)
             subject.on_completed()
-        except Exception as error:
-            subject.on_error(error)
+        except AppException as e:
+            subject.on_error(e.error)
+        except Exception as e:
+            logger.debug(e)
 
         return subject
 
-    def _make_request_sync(self, model_type: T) -> Union[T, ErrorType]:
+    def _make_request_sync(self, model_type: T) -> Union[T, ErrorModel]:
         url = f"{self.base_url}/{self.path}"
         try:
             response = self.client.request(
                 self.method, url, headers=self.headers, params=self.params, json=self.json)
             response.raise_for_status()  # Raise exception for non-2xx status codes
-            return model_type.parse_obj(response.json())
-        except httpx.InvalidURL as url_error:
+            return parse_raw_as(model_type, response.content)
+        except httpx.InvalidURL:
             logger.error("Invaild api call")
-            return url_error
-        except httpx.NetworkError as network_error:
-            return network_error
+            raise AppException(error=AppError.INVALID_INPUT.value)
+        except httpx.NetworkError:
+            raise AppException(error=AppError.NETWORK_ERROR.value)
         except httpx.HTTPStatusError as http_error:
-            return ErrorModel(status_code=http_error.response.status_code, content=http_error.response.json())
+            status_code = http_error.response.status_code
+            try:
+                content = http_error.response.json()
+            except json.JSONDecodeError:
+                text_maker = html2text.HTML2Text()
+                text_maker.ignore_links = True
+                text_maker.bypass_tables = False
+                html = http_error.response.content.decode("utf-8")
+                text = text_maker.handle(data=html)
+                content = {"message": text}
+            error = ErrorModel(status_code=status_code, content=content)
+            raise AppException(error=error)
         except Exception as e:
-            return e
+            raise AppException(error=AppError.UNKNOWN_ERROR.value)
 
     @classmethod
     def create(cls, base_url):

@@ -1,5 +1,5 @@
 import flet
-from ui.screens.details.employee import Employee
+from data_models.employee import Employee
 
 
 class EmployeeListItemView(flet.UserControl):
@@ -9,7 +9,7 @@ class EmployeeListItemView(flet.UserControl):
 
     def build(self):
         meal_row = flet.Row()
-        if len(self.employee.booked_meals) > 0:
+        if self.employee.booked_meals is not None and len(self.employee.booked_meals) > 0:
             for booked_meal in self.employee.booked_meals:
                 bgcolor = flet.colors.TRANSPARENT
                 if self.employee.has_consumed(meal=booked_meal):

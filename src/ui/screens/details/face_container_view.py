@@ -1,10 +1,10 @@
 import flet
-from ui.screens.details.employee import Employee
-from typing import Protocol
+from typing import Protocol, Dict
 from typing import Callable
-from ui.screens.details.employee import Meal
+from data_models.employee import Meal, Employee
 from typing import Optional
 from flet_core.ref import Ref
+from assets.images import Images
 
 
 class FaceContainerProtocol(Protocol):
@@ -17,6 +17,7 @@ class FaceContainerView(flet.UserControl, FaceContainerProtocol):
 
     def __init__(self, on_meal_select: MealSelectCallable, ref: Optional[Ref]):
         super().__init__(ref=ref)
+        self.greetings_ref = flet.Ref[flet.Text]()
         self.breakfast_progress_ring_ref = flet.Ref[flet.ProgressRing]()
         self.lunch_progress_ring_ref = flet.Ref[flet.ProgressRing]()
         self.breakfast_button_ref = flet.Ref[flet.ElevatedButton]()
@@ -31,13 +32,14 @@ class FaceContainerView(flet.UserControl, FaceContainerProtocol):
                           style=flet.TextThemeStyle.TITLE_LARGE),
                 flet.Image(
                     ref=self.frame_image_ref,
-                    src_base64=None,
+                    src_base64=Images().camera_image_data,
                     width=200,
                     height=200,
                     fit=flet.ImageFit.COVER,
                 ),
                 flet.Text("Hello Name of the employee",
-                          style=flet.TextThemeStyle.TITLE_MEDIUM),
+                          style=flet.TextThemeStyle.TITLE_MEDIUM,
+                          ref=self.greetings_ref),
                 flet.Text("What meal do you want to consume?",
                           style=flet.TextThemeStyle.TITLE_SMALL),
                 flet.Row(
@@ -107,6 +109,14 @@ class FaceContainerView(flet.UserControl, FaceContainerProtocol):
         self.on_meal_select(Meal.LUNCH)
 
     def update_frame_image(self, image_base64):
-        if self.frame_image_ref.current is not None:
+        if self.frame_image_ref.current is not None and image_base64 is not None:
             self.frame_image_ref.current.src_base64 = image_base64
             self.update()
+
+    def show_meal_info(self, employee_dict: Dict[str, any]):
+        employee_id = employee_dict["employee_id"]
+        employee_name = employee_dict["employee_name"]
+        meal_ordered = employee_dict["meal_ordered"]
+        meal_consumed = employee_dict["meal_consumed"]
+
+        pass

@@ -6,7 +6,7 @@ import numpy as np
 import numbers
 import types
 
-from fas import functional as F
+from recognition.fas import functional as F
 
 __all__ = ["Compose", "ToTensor", "ToPILImage", "Normalize", "RandomHorizontalFlip",
            "Lambda", "RandomResizedCrop", "ColorJitter", "RandomRotation"]

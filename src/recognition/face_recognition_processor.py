@@ -30,7 +30,8 @@ class FaceRecognitionProcessor:
         face_image = None
         bbox = None
         if frame is not None:
-            for index, frame in tqdm(enumerate([frame]), total=len([frame]), desc="Face Extractor"):
+            # for index, frame in tqdm(enumerate([frame]), total=len([frame]), desc="Face Extractor"):
+            for index, frame in enumerate([frame]):
                 face_image, bbox = self.cascade_detector.extract_face(
                     image_array=frame)
 

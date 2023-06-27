@@ -3,7 +3,8 @@ from pydantic import BaseModel
 
 
 class DetailsPresenterProtocol(MvpPresenterProtocol):
-    pass
+    def get_employees(self) -> None:
+        ...
 
 
 class DetailsViewProtocol(MvpViewProtocol):
