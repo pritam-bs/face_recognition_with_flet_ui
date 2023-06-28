@@ -21,7 +21,7 @@ class FasProcessor:
     model_name_v1 = "4_0_0_80x80_MiniFASNetV1SE.pth"
     model_v2 = None
     model_v1 = None
-    scoreThreshold = 0.01
+    scoreThreshold = 0.90
 
     def __init__(self):
         self.device = torch.device("cuda:{}".format(0)

@@ -20,11 +20,8 @@ class FaceContainerView(flet.UserControl, FaceContainerProtocol):
 
     def __init__(self, on_meal_select: MealSelectCallable, ref: Optional[Ref], expand: Union[None, bool, int] = None):
         super().__init__(ref=ref, expand=expand)
-        self.greetings_ref = flet.Ref[flet.Text]()
         self.breakfast_progress_ring_ref = flet.Ref[flet.ProgressRing]()
         self.lunch_progress_ring_ref = flet.Ref[flet.ProgressRing]()
-        self.breakfast_button_ref = flet.Ref[flet.ElevatedButton]()
-        self.lunch_button_ref = flet.Ref[flet.ElevatedButton]()
         self.on_meal_select = on_meal_select
         self.frame_image_ref = flet.Ref[flet.Image]()
         self.meal_info_timestamp = None
@@ -74,18 +71,17 @@ class FaceContainerView(flet.UserControl, FaceContainerProtocol):
             expand=True,
         )
 
-    def _get_meal_info_control(self):
+    def _get_meal_info_control(self, employee_name: str, is_breakfast_disable: bool, is_lunch_disable: bool):
         return flet.Column(
             controls=[
-                flet.Text("Hello Name of the employee",
+                flet.Text(f"Hello {employee_name}",
                           style=flet.TextThemeStyle.TITLE_MEDIUM,
-                          ref=self.greetings_ref),
+                          ),
                 flet.Text("What meal do you want to consume?",
                           style=flet.TextThemeStyle.TITLE_SMALL),
                 flet.Row(
                     controls=[
                         flet.ElevatedButton(
-                            ref=self.breakfast_button_ref,
                             content=flet.Row(controls=[
                                 flet.Text("Breakfast"),
                                 flet.ProgressRing(
@@ -100,10 +96,10 @@ class FaceContainerView(flet.UserControl, FaceContainerProtocol):
                             ),
                             width=150,
                             height=40,
+                            disabled=is_breakfast_disable,
                             on_click=self._breakfast_button_on_click
                         ),
                         flet.ElevatedButton(
-                            ref=self.lunch_button_ref,
                             content=flet.Row(controls=[
                                 flet.Text("Lunch"),
                                 flet.ProgressRing(
@@ -118,6 +114,7 @@ class FaceContainerView(flet.UserControl, FaceContainerProtocol):
                             ),
                             width=150,
                             height=40,
+                            disabled=is_lunch_disable,
                             on_click=self._lunch_button_on_click
                         ),
                     ],
@@ -143,7 +140,24 @@ class FaceContainerView(flet.UserControl, FaceContainerProtocol):
                     style=flet.TextThemeStyle.TITLE_MEDIUM,
                 ),
 
-            ])
+            ]
+        )
+
+    def _get_booking_not_found_control(self, employee_id: str):
+        return flet.Column(
+            controls=[
+                flet.Text(
+                    "We apologize for any inconvenience caused, but it appears that you have not booked a meal for today.",
+                    style=flet.TextThemeStyle.BODY_LARGE,
+                    color=flet.colors.RED_ACCENT_400,
+                ),
+                flet.Text(
+                    f"Employee ID: {employee_id}",
+                    style=flet.TextThemeStyle.TITLE_LARGE,
+                    color=flet.colors.RED_ACCENT_700,
+                ),
+            ]
+        )
 
     def _breakfast_button_on_click(self, e):
         self.breakfast_progress_ring_ref.current.visible = True
@@ -166,20 +180,29 @@ class FaceContainerView(flet.UserControl, FaceContainerProtocol):
 
     def show_meal_info(self, employee_info: Employee):
         self.meal_info_timestamp = time.time()
-        self.meal_info_container_ref.current.content = self._get_meal_info_control()
-        self.greetings_ref.current.value = f"Hello {employee_info.name}"
-        self.breakfast_button_ref.current.disabled = True
-        self.lunch_button_ref.current.disabled = True
+
+        is_breakfast_disabled = True
+        is_lunch_disabled = True
 
         booked_meals = [] if employee_info.booked_meals is None else employee_info.booked_meals
         for booked_meal in booked_meals:
             if booked_meal == Meal.BREAKFAST:
-                self.breakfast_button_ref.current.disabled = employee_info.has_consumed(
+                is_breakfast_disabled = employee_info.has_consumed(
                     meal=Meal.BREAKFAST)
             elif booked_meal == Meal.LUNCH:
-                self.lunch_button_ref.current.disabled = employee_info.has_consumed(
+                is_lunch_disabled = employee_info.has_consumed(
                     meal=Meal.LUNCH)
+        self.meal_info_container_ref.current.content = self._get_meal_info_control(
+            employee_name=employee_info.name,
+            is_breakfast_disable=is_breakfast_disabled,
+            is_lunch_disable=is_lunch_disabled
+        )
+        self.update()
 
+    def show_booking_not_found_info(self, employee_id: str):
+        self.meal_info_timestamp = time.time()
+        self.meal_info_container_ref.current.content = self._get_booking_not_found_control(
+            employee_id=employee_id,)
         self.update()
 
     def _hide_meal_info(self, tick):

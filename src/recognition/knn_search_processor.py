@@ -29,7 +29,7 @@ class KnnSearchProcessor:
         min_distance_index = np.argmin(distances, axis=1)
         min_distance_value = distances[0, min_distance_index]
         if min_distance_value > self.distance_threshold:
-            return "Unknown"
+            return None
         index = indices[0, min_distance_index]
         matched_person_id = self.index_vs_id_dict[index[0]]
         return matched_person_id

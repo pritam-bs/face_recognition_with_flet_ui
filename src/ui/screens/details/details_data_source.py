@@ -76,7 +76,8 @@ class DetailsDataSource(MvpDataSource):
             embeddings = self._face_embedding_creator(
                 face_image_list=[face_image])
             matched_id = self._search(embeddings=embeddings)
-            self.matched_subject.on_next(matched_id)
+            if matched_id is not None:
+                self.matched_subject.on_next(matched_id)
 
     def _face_extractor(self, frame):
         face_image = None
@@ -173,15 +174,10 @@ class DetailsDataSource(MvpDataSource):
         return None
 
     def _show_matched_employee_details(self, employee_id):
-        if employee_id == "Unknown":
-            return
         employee_info = self._get_employee_details(employee_id=employee_id)
         if employee_info is None:
-            self._show_no_meal_booked_dialog(employee_id=employee_id)
+            self.update_model_complete(
+                new_model={"no_meal_found": employee_id})
         else:
             self.update_model_complete(
                 new_model={"meal_found": employee_info})
-
-    def _show_no_meal_booked_dialog(self, employee_id):
-        self.update_model_complete(
-            new_model={"no_meal_found": employee_id})
