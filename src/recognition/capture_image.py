@@ -29,6 +29,7 @@ class CaptureImage:
             return None
         try:
             ret, frame = self.video_capture.read()
+            frame = cv2.flip(frame, 1)
         except Exception as e:
             print(f"Image capture failed. Error: {e}")
             return None
