@@ -91,6 +91,7 @@ class InfoSidebarView(flet.UserControl):
             ],
             alignment=flet.MainAxisAlignment.CENTER,
             horizontal_alignment=flet.CrossAxisAlignment.CENTER,
+            expand=True,
         )
 
     def _on_scroll(self, event: flet.OnScrollEvent):

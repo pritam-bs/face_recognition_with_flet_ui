@@ -13,6 +13,8 @@ from data_models.employee import Employee
 from api.api_client import APIClient
 from settings import settings
 from rx.subject.asyncsubject import AsyncSubject
+from rx.subject import Subject
+from rx.operators import distinct_until_changed
 from logger import logger
 from app_errors.app_error import ErrorModel
 from storage.client_storage import ClientStorage
@@ -24,7 +26,8 @@ class DetailsModel(MvpModel):
     is_loading: Optional[bool] = None
     frame_image_base64: Optional[str] = None
     employee_list: Optional[List[Employee]] = None
-    matched_employee: Optional[Employee] = None
+    meal_found: Optional[Employee] = None
+    no_meal_found: Optional[str] = None
     app_error: Optional[ErrorModel] = None
 
 
@@ -39,11 +42,19 @@ class DetailsDataSource(MvpDataSource):
         self.fasProcessor = FasProcessor()
         self.arc_face_generator = ArcFaceGenerator()
         self.knnSearchProcessor = KnnSearchProcessor()
+        self.matched_subject = Subject()
+        self.matched_subscription = self.matched_subject.pipe(
+            distinct_until_changed()
+        ) .subscribe(on_next=self._on_matched)
         self._strat_image_producer()
+
+    def __del__(self):
+        self.matched_subscription.dispose()
+        self.image_producer_subscription.dispose()
 
     def _strat_image_producer(self):
         self.observable = rx.interval(1.0/30.0)
-        self.subscription = self.observable.subscribe(
+        self.image_producer_subscription = self.observable.subscribe(
             on_next=self._image_producer_worker)
 
     def _image_producer_worker(self, interval):
@@ -63,7 +74,8 @@ class DetailsDataSource(MvpDataSource):
         if face_image is not None and bbox is not None and is_live:
             embeddings = self._face_embedding_creator(
                 face_image_list=[face_image])
-            self._search(embeddings=embeddings)
+            matched_id = self._search(embeddings=embeddings)
+            self.matched_subject.on_next(matched_id)
 
     def _face_extractor(self, frame):
         face_image = None
@@ -83,9 +95,13 @@ class DetailsDataSource(MvpDataSource):
         return embeddings
 
     def _search(self, embeddings):
-        matched_person_id = self.knnSearchProcessor.search(
+        matched_id = self.knnSearchProcessor.search(
             embeddings=embeddings)
-        logger.debug(f"Matched Person's ID: {matched_person_id}")
+        return matched_id
+
+    def _on_matched(self, matched_id):
+        logger.debug(f"Matched ID: {matched_id}")
+        self._show_matched_employee_details(employee_id=matched_id)
 
     def _update_image_for_viewing(self, frame, bbox, is_live):
         if bbox is not None:
@@ -150,10 +166,19 @@ class DetailsDataSource(MvpDataSource):
     def _get_employee_details(self, employee_id):
         client_storage = ClientStorage(page=self.app.page)
         employee_dict = client_storage.get_employee_dict()
-        employee_info = employee_dict[employee_id]
-        return employee_info
+        if employee_dict is not None and employee_id in employee_dict:
+            employee_info = employee_dict[employee_id]
+            return employee_info
+        return None
 
     def _show_matched_employee_details(self, employee_id):
         employee_info = self._get_employee_details(employee_id=employee_id)
+        if employee_info is None:
+            self._show_no_meal_booked_dialog(employee_id=employee_id)
+        else:
+            self.update_model_complete(
+                new_model={"meal_found": employee_info})
+
+    def _show_no_meal_booked_dialog(self, employee_id):
         self.update_model_complete(
-            new_model={"matched_employee": employee_info})
+            new_model={"no_meal_found": employee_id})

@@ -12,6 +12,7 @@ from ui.screens.details.face_container_view import Meal
 import base64
 from app_errors.app_error import ErrorModel
 
+
 from flet import (
     Icon,
     Text,
@@ -27,6 +28,7 @@ class DetailsView(MvpView, DetailsViewProtocol):
     info_sidebar_view_ref = flet.Ref[InfoSidebarView]()
     face_container_view_ref = flet.Ref[FaceContainerView]()
     error_dialog_ref = flet.Ref[flet.AlertDialog]()
+    no_meal_dialog_ref = flet.Ref[flet.AlertDialog]()
 
     ref_map = {
 
@@ -77,19 +79,21 @@ class DetailsView(MvpView, DetailsViewProtocol):
             error_message = content["message"] if content is not None and content["message"] is not None else "Unknown error"
             self._show_error_dialog(description=error_message)
 
+        if model_map["no_meal_found"] is not None:
+            employee_id = model_map["no_meal_found"]
+            self._show_no_meal_dialog(employee_id=employee_id)
+
+        if model_map["meal_found"] is not None:
+            employee_info = model_map["meal_found"]
+
     def _get_ui(self) -> flet.Row:
         return flet.Row(controls=[
-            flet.Container(
-                InfoSidebarView(presenter=self.presenter,
-                                ref=self.info_sidebar_view_ref),
-                expand=False,
-            ),
-            flet.Container(
-                FaceContainerView(on_meal_select=self.on_meal_select,
-                                  ref=self.face_container_view_ref),
-                expand=True,
-                alignment=flet.alignment.center,
-            )
+            InfoSidebarView(presenter=self.presenter,
+                            ref=self.info_sidebar_view_ref),
+            FaceContainerView(on_meal_select=self.on_meal_select,
+                              ref=self.face_container_view_ref,
+                              expand=True),
+
         ],
             vertical_alignment=flet.CrossAxisAlignment.START,
             alignment=flet.MainAxisAlignment.START,
@@ -106,7 +110,8 @@ class DetailsView(MvpView, DetailsViewProtocol):
                 f"An error has occurred while processing your request.\nDescription: {description}"
             ),
             actions=[
-                flet.TextButton("Cancel", on_click=self.cancle_action),
+                flet.TextButton(
+                    "Cancel", on_click=self._error_dialog_cancle_action),
             ],
             actions_alignment=flet.MainAxisAlignment.END,
             on_dismiss=lambda e: print("Error dialog dismissed!"),
@@ -115,8 +120,32 @@ class DetailsView(MvpView, DetailsViewProtocol):
         self.page.dialog.open = True
         self.page.update()
 
-    def cancle_action(self, e):
+    def _error_dialog_cancle_action(self, e):
         self.error_dialog_ref.current.open = False
+        self.page.update()
+
+    def _show_no_meal_dialog(self, employee_id: str):
+        no_meal_dialog = flet.AlertDialog(
+            ref=self.no_meal_dialog_ref,
+            modal=True,
+            title=flet.Text(
+                "Sorry, No record found!"),
+            content=flet.Text(
+                f"No meal booking found for Employee ID: {employee_id} today.\nPlease make a reservation to enjoy your meal."
+            ),
+            actions=[
+                flet.TextButton(
+                    "Cancel", on_click=self._no_meal_dialog_cancle_action),
+            ],
+            actions_alignment=flet.MainAxisAlignment.END,
+            on_dismiss=lambda e: print("No meal dialog dismissed!"),
+        )
+        self.page.dialog = no_meal_dialog
+        self.page.dialog.open = True
+        self.page.update()
+
+    def _no_meal_dialog_cancle_action(self, e):
+        self.no_meal_dialog_ref.current.open = False
         self.page.update()
 
     def on_meal_select(self, meal: Meal):

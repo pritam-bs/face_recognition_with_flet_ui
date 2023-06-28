@@ -13,12 +13,12 @@ class EmployeeListItemView(flet.UserControl):
             for booked_meal in self.employee.booked_meals:
                 bgcolor = flet.colors.TRANSPARENT
                 if self.employee.has_consumed(meal=booked_meal):
-                    bgcolor = flet.colors.GREEN
+                    bgcolor = flet.colors.BLUE_GREY_700
                 meal = flet.Container(
                     content=flet.Text(booked_meal.value,
                                       style=flet.TextThemeStyle.LABEL_MEDIUM),
                     border=flet.border.all(
-                        width=1, color=flet.colors.GREEN),
+                        width=1, color=flet.colors.BLUE_GREY_600),
                     padding=4,
                     border_radius=4,
                     bgcolor=bgcolor,
