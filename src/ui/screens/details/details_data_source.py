@@ -20,6 +20,7 @@ from app_errors.app_error import ErrorModel
 from storage.client_storage import ClientStorage
 from recognition.feature_generator.arc_face_feature_generator import ArcFaceGenerator
 from recognition.knn_search_processor import KnnSearchProcessor
+from data_models.employee import Meal
 
 
 class DetailsModel(MvpModel):
@@ -29,6 +30,7 @@ class DetailsModel(MvpModel):
     meal_found: Optional[Employee] = None
     no_meal_found: Optional[str] = None
     app_error: Optional[ErrorModel] = None
+    is_meal_consumption_successful: Optional[bool] = None
 
 
 class DetailsDataSource(MvpDataSource):
@@ -150,6 +152,36 @@ class DetailsDataSource(MvpDataSource):
             logger.debug(error)
             self.update_model_complete(new_model={
                 "is_loading": False,
+                "app_error": error,
+                "employee_list": []
+            })
+
+        observable.subscribe(on_next=on_next, on_error=on_error).dispose()
+
+    def submit_meal_consumption(self, employee_id: str, meal: Meal):
+        self.update_model_complete(new_model={"is_loading": True})
+        self.opm_api_client.post().set_path("meal").set_params(
+            {"employee_id": employee_id, "meal": meal.value})
+
+        # Make the API call and get the observable
+        observable: AsyncSubject = self.opm_api_client.make_request(
+            model_type=List[Employee])
+
+        # Subscribe to the observable to receive the API response
+        def on_next(data):
+            logger.debug(data)
+            self._save_employees_info_to_storage(employees=data)
+            self.update_model_complete(new_model={
+                "is_loading": False,
+                "is_meal_consumption_successful": True,
+                "employee_list": data
+            })
+
+        def on_error(error):
+            logger.debug(error)
+            self.update_model_complete(new_model={
+                "is_loading": False,
+                "is_meal_consumption_successful": False,
                 "app_error": error,
                 "employee_list": []
             })

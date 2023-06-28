@@ -10,22 +10,23 @@ import rx
 from typing import Union
 
 
-class FaceContainerProtocol(Protocol):
-    def on_meal_select(meal: Meal):
-        ...
-
-
-class FaceContainerView(flet.UserControl, FaceContainerProtocol):
-    MealSelectCallable = Callable[[any, Meal], None]
+class FaceContainerView(flet.UserControl):
+    MealSelectCallable = Callable[[any, Employee, Meal], None]
 
     def __init__(self, on_meal_select: MealSelectCallable, ref: Optional[Ref], expand: Union[None, bool, int] = None):
         super().__init__(ref=ref, expand=expand)
+
         self.breakfast_progress_ring_ref = flet.Ref[flet.ProgressRing]()
         self.lunch_progress_ring_ref = flet.Ref[flet.ProgressRing]()
-        self.on_meal_select = on_meal_select
+        self.breakfast_button_ref = flet.Ref[flet.ElevatedButton]()
+        self.lunch_button_ref = flet.Ref[flet.ElevatedButton]()
+
         self.frame_image_ref = flet.Ref[flet.Image]()
-        self.meal_info_timestamp = None
         self.meal_info_container_ref = flet.Ref[flet.Container]()
+
+        self.on_meal_select = on_meal_select
+        self.meal_info_timestamp = None
+        self.currently_showing_employee = None
 
     def did_mount(self):
         self._start_meal_info_timmer()
@@ -82,6 +83,7 @@ class FaceContainerView(flet.UserControl, FaceContainerProtocol):
                 flet.Row(
                     controls=[
                         flet.ElevatedButton(
+                            ref=self.breakfast_button_ref,
                             content=flet.Row(controls=[
                                 flet.Text("Breakfast"),
                                 flet.ProgressRing(
@@ -100,6 +102,7 @@ class FaceContainerView(flet.UserControl, FaceContainerProtocol):
                             on_click=self._breakfast_button_on_click
                         ),
                         flet.ElevatedButton(
+                            ref=self.lunch_button_ref,
                             content=flet.Row(controls=[
                                 flet.Text("Lunch"),
                                 flet.ProgressRing(
@@ -164,14 +167,14 @@ class FaceContainerView(flet.UserControl, FaceContainerProtocol):
         self.breakfast_button_ref.current.disabled = True
         self.lunch_button_ref.current.disabled = True
         self.update()
-        self.on_meal_select(Meal.BREAKFAST)
+        self.on_meal_select(self.currently_showing_employee, Meal.BREAKFAST)
 
     def _lunch_button_on_click(self, e):
         self.lunch_progress_ring_ref.current.visible = True
         self.breakfast_button_ref.current.disabled = True
         self.lunch_button_ref.current.disabled = True
         self.update()
-        self.on_meal_select(Meal.LUNCH)
+        self.on_meal_select(self.currently_showing_employee, Meal.LUNCH)
 
     def update_frame_image(self, image_base64):
         if self.frame_image_ref.current is not None and image_base64 is not None:
@@ -179,6 +182,7 @@ class FaceContainerView(flet.UserControl, FaceContainerProtocol):
             self.update()
 
     def show_meal_info(self, employee_info: Employee):
+        self.currently_showing_employee = employee_info
         self.meal_info_timestamp = time.time()
 
         is_breakfast_disabled = True
@@ -205,14 +209,22 @@ class FaceContainerView(flet.UserControl, FaceContainerProtocol):
             employee_id=employee_id,)
         self.update()
 
-    def _hide_meal_info(self, tick):
+    def _hide_meal_info(self, tick=None):
         if self.meal_info_timestamp is None:
             return
+
         # Calculate the difference in seconds
         diff_seconds = time.time() - self.meal_info_timestamp
         if diff_seconds > 10:
             self.meal_info_container_ref.current.content = self._get_description_control()
             self.update()
+            self.currently_showing_employee = None
+
+    def handle_meal_submission_result(self):
+        self.meal_info_timestamp = None
+        self.meal_info_container_ref.current.content = self._get_description_control()
+        self.update()
+        self.currently_showing_employee = None
 
     def _start_meal_info_timmer(self):
         self.meal_info_observable = rx.interval(1.0)

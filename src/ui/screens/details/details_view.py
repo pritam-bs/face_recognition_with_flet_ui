@@ -12,14 +12,10 @@ from ui.screens.details.face_container_view import Meal
 import base64
 from app_errors.app_error import ErrorModel
 
-
 from flet import (
     Icon,
     Text,
-    TextField,
-    colors,
     icons,
-    ElevatedButton,
 )
 
 
@@ -91,6 +87,10 @@ class DetailsView(MvpView, DetailsViewProtocol):
                 self.face_container_view_ref.current.show_meal_info(
                     employee_info=employee_info)
 
+        is_successful = model_map["is_meal_consumption_successful"]
+        if is_successful is not None:
+            self._handle_meal_submission_result(is_successful=is_successful)
+
     def _get_ui(self) -> flet.Row:
         return flet.Row(controls=[
             InfoSidebarView(presenter=self.presenter,
@@ -129,5 +129,31 @@ class DetailsView(MvpView, DetailsViewProtocol):
         self.error_dialog_ref.current.open = False
         self.page.update()
 
-    def on_meal_select(self, meal: Meal):
-        pass
+    def _handle_meal_submission_result(self, is_successful: bool):
+        if is_successful:
+            self.page.snack_bar = flet.SnackBar(
+                flet.Text(
+                    "Enjoy your meal!",
+                    style=flet.TextThemeStyle.TITLE_MEDIUM,
+                    color=flet.colors.WHITE
+                ),
+                duration=5000,
+                bgcolor=flet.colors.BLUE_GREY_800,
+            )
+        else:
+            self.page.snack_bar = flet.SnackBar(
+                flet.Text(
+                    "Sorry! Please try again.",
+                    style=flet.TextThemeStyle.TITLE_MEDIUM,
+                    color=flet.colors.WHITE
+                ),
+                duration=10000,
+                bgcolor=flet.colors.RED_ACCENT_700,)
+        self.page.snack_bar.open = True
+        self.page.update()
+        if self.face_container_view_ref.current is not None:
+            self.face_container_view_ref.current.handle_meal_submission_result()
+
+    def on_meal_select(self, employee_info: Employee, meal: Meal):
+        self.presenter.submit_meal_consumption(
+            employee_id=employee_info.employee_id, meal=meal)
