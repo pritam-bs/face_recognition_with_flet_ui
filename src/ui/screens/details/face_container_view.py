@@ -28,6 +28,7 @@ class FaceContainerView(flet.UserControl, FaceContainerProtocol):
         self.on_meal_select = on_meal_select
         self.frame_image_ref = flet.Ref[flet.Image]()
         self.meal_info_timestamp = None
+        self.meal_info_container_ref = flet.Ref[flet.Container]()
 
     def did_mount(self):
         self._start_meal_info_timmer()
@@ -38,8 +39,8 @@ class FaceContainerView(flet.UserControl, FaceContainerProtocol):
     def build(self):
         return flet.Column(
             controls=[
-                flet.Text("Scan your face",
-                          style=flet.TextThemeStyle.TITLE_LARGE
+                flet.Text("Face Scanner",
+                          style=flet.TextThemeStyle.DISPLAY_SMALL
                           ),
                 flet.Image(
                     ref=self.frame_image_ref,
@@ -51,7 +52,8 @@ class FaceContainerView(flet.UserControl, FaceContainerProtocol):
                 ),
                 flet.Container(
                     content=flet.Container(
-                        content=self._get_meal_info_control(),
+                        ref=self.meal_info_container_ref,
+                        content=self._get_description_control(),
                         expand=False,
                         width=400,
                         height=150,
@@ -129,8 +131,19 @@ class FaceContainerView(flet.UserControl, FaceContainerProtocol):
             horizontal_alignment=flet.CrossAxisAlignment.START,
         )
 
-    def _get_consumed_meal_info_control(self):
-        pass
+    def _get_description_control(self):
+        return flet.Column(
+            controls=[
+                flet.Text(
+                    "Welcome to office meal service!",
+                    style=flet.TextThemeStyle.TITLE_LARGE,
+                ),
+                flet.Text(
+                    "Please scan your face to access the meal options.",
+                    style=flet.TextThemeStyle.TITLE_MEDIUM,
+                ),
+
+            ])
 
     def _breakfast_button_on_click(self, e):
         self.breakfast_progress_ring_ref.current.visible = True
@@ -151,9 +164,23 @@ class FaceContainerView(flet.UserControl, FaceContainerProtocol):
             self.frame_image_ref.current.src_base64 = image_base64
             self.update()
 
-    def _show_meal_info(self, employee_info):
+    def show_meal_info(self, employee_info: Employee):
         self.meal_info_timestamp = time.time()
-        pass
+        self.meal_info_container_ref.current.content = self._get_meal_info_control()
+        self.greetings_ref.current.value = f"Hello {employee_info.name}"
+        self.breakfast_button_ref.current.disabled = True
+        self.lunch_button_ref.current.disabled = True
+
+        booked_meals = [] if employee_info.booked_meals is None else employee_info.booked_meals
+        for booked_meal in booked_meals:
+            if booked_meal == Meal.BREAKFAST:
+                self.breakfast_button_ref.current.disabled = employee_info.has_consumed(
+                    meal=Meal.BREAKFAST)
+            elif booked_meal == Meal.LUNCH:
+                self.lunch_button_ref.current.disabled = employee_info.has_consumed(
+                    meal=Meal.LUNCH)
+
+        self.update()
 
     def _hide_meal_info(self, tick):
         if self.meal_info_timestamp is None:
@@ -161,7 +188,8 @@ class FaceContainerView(flet.UserControl, FaceContainerProtocol):
         # Calculate the difference in seconds
         diff_seconds = time.time() - self.meal_info_timestamp
         if diff_seconds > 10:
-            pass
+            self.meal_info_container_ref.current.content = self._get_description_control()
+            self.update()
 
     def _start_meal_info_timmer(self):
         self.meal_info_observable = rx.interval(1.0)

@@ -84,7 +84,10 @@ class DetailsView(MvpView, DetailsViewProtocol):
             self._show_no_meal_dialog(employee_id=employee_id)
 
         if model_map["meal_found"] is not None:
-            employee_info = model_map["meal_found"]
+            employee_info = parse_obj_as(Employee, model_map["meal_found"])
+            if self.face_container_view_ref.current is not None:
+                self.face_container_view_ref.current.show_meal_info(
+                    employee_info=employee_info)
 
     def _get_ui(self) -> flet.Row:
         return flet.Row(controls=[

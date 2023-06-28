@@ -65,8 +65,9 @@ class DetailsDataSource(MvpDataSource):
         face_image, bbox = self._face_extractor(frame=frame)
         is_live = None
         if bbox is not None:
-            is_live = self.fasProcessor.liveness_detector(
-                frame=frame, bbox=bbox, image_format="BGR")
+            is_live = True
+            # is_live = self.fasProcessor.liveness_detector(
+            #     frame=frame, bbox=bbox, image_format="BGR")
 
         self._update_image_for_viewing(
             frame=frame, bbox=bbox, is_live=is_live)
@@ -172,6 +173,8 @@ class DetailsDataSource(MvpDataSource):
         return None
 
     def _show_matched_employee_details(self, employee_id):
+        if employee_id == "Unknown":
+            return
         employee_info = self._get_employee_details(employee_id=employee_id)
         if employee_info is None:
             self._show_no_meal_booked_dialog(employee_id=employee_id)

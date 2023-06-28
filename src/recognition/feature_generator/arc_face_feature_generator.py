@@ -11,6 +11,7 @@ for gpu in gpus:
 
 
 class ArcFaceGenerator:
+    _instance = None
     logger = tf.get_logger()
     logger.disabled = True
     logger.setLevel(logging.FATAL)
@@ -20,6 +21,11 @@ class ArcFaceGenerator:
 
     file_hash = {"glint360k_cosface": "e39a16ace2ba11edb5ea0242ac120002"}
     default_model_http = "http://github.com/leondgarse/Keras_insightface/releases/download/v1.0.0/glint360k_cosface_r100_fp16_0.1.h5"
+
+    def __new__(cls, *args, **kwargs):
+        if not cls._instance:
+            cls._instance = super().__new__(cls, *args, **kwargs)
+        return cls._instance
 
     def __init__(self, model_path=default_detector):
         if isinstance(model_path, str) and model_path.startswith("http"):
