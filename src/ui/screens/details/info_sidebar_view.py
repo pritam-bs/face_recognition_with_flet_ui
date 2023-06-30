@@ -81,7 +81,7 @@ class InfoSidebarView(flet.UserControl):
                         ),
                         alignment=flet.alignment.center,
                         bgcolor=flet.colors.with_opacity(
-                            opacity=0.4, color=flet.colors.GREY_900),
+                            opacity=0.4, color=flet.colors.ON_PRIMARY),
                     ),
 
                 ],

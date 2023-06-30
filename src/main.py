@@ -9,6 +9,8 @@ import logging
 def main(page: Page):
     logging.getLogger("flet_core").setLevel(logging.CRITICAL)
     logging.getLogger("flet").setLevel(logging.CRITICAL)
+
+    page.theme = flet.Theme(color_scheme_seed="blue")
     page.window_min_height = 600
     page.window_min_width = 800
     app = App(page, custom_state=True)

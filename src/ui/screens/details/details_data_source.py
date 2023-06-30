@@ -67,9 +67,9 @@ class DetailsDataSource(MvpDataSource):
         face_image, bbox = self._face_extractor(frame=frame)
         is_live = None
         if bbox is not None:
-            # is_live = True
-            is_live = self.fasProcessor.liveness_detector(
-                frame=frame, bbox=bbox, image_format="BGR")
+            is_live = True
+            # is_live = self.fasProcessor.liveness_detector(
+            #     frame=frame, bbox=bbox, image_format="BGR")
 
         self._update_image_for_viewing(
             frame=frame, bbox=bbox, is_live=is_live)

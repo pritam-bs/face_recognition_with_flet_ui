@@ -135,20 +135,20 @@ class DetailsView(MvpView, DetailsViewProtocol):
                 flet.Text(
                     "Enjoy your meal!",
                     style=flet.TextThemeStyle.TITLE_MEDIUM,
-                    color=flet.colors.WHITE
+                    color=flet.colors.SECONDARY
                 ),
                 duration=5000,
-                bgcolor=flet.colors.BLUE_GREY_800,
+                bgcolor=flet.colors.ON_SECONDARY,
             )
         else:
             self.page.snack_bar = flet.SnackBar(
                 flet.Text(
                     "Sorry! Please try again.",
                     style=flet.TextThemeStyle.TITLE_MEDIUM,
-                    color=flet.colors.WHITE
+                    color=flet.colors.ON_ERROR_CONTAINER
                 ),
                 duration=10000,
-                bgcolor=flet.colors.RED_ACCENT_700,)
+                bgcolor=flet.colors.ERROR_CONTAINER,)
         self.page.snack_bar.open = True
         self.page.update()
         if self.face_container_view_ref.current is not None:

@@ -37,9 +37,11 @@ class FaceContainerView(flet.UserControl):
     def build(self):
         return flet.Column(
             controls=[
-                flet.Text("Face Scanner",
-                          style=flet.TextThemeStyle.DISPLAY_SMALL
-                          ),
+                flet.Text(
+                    "Face Scanner",
+                    style=flet.TextThemeStyle.DISPLAY_SMALL,
+                    color=flet.colors.SECONDARY,
+                ),
                 flet.Image(
                     ref=self.frame_image_ref,
                     src_base64=Images().camera_image_data,
@@ -58,13 +60,13 @@ class FaceContainerView(flet.UserControl):
                         alignment=flet.alignment.top_center,
                         padding=20,
                         border_radius=10,
-                        bgcolor=flet.colors.BLUE_GREY_800,
+                        bgcolor=flet.colors.ON_SECONDARY,
                     ),
                     expand=True,
                     alignment=flet.alignment.top_center,
                     padding=20,
                     border_radius=10,
-                    bgcolor=flet.colors.BLUE_GREY_900,
+                    bgcolor=flet.colors.SECONDARY_CONTAINER,
                 ),
             ],
             alignment=flet.MainAxisAlignment.CENTER,
@@ -75,17 +77,25 @@ class FaceContainerView(flet.UserControl):
     def _get_meal_info_control(self, employee_name: str, is_breakfast_disable: bool, is_lunch_disable: bool):
         return flet.Column(
             controls=[
-                flet.Text(f"Hello {employee_name}",
-                          style=flet.TextThemeStyle.TITLE_MEDIUM,
-                          ),
-                flet.Text("What meal do you want to consume?",
-                          style=flet.TextThemeStyle.TITLE_SMALL),
+                flet.Text(
+                    f"Hello {employee_name}",
+                    style=flet.TextThemeStyle.TITLE_MEDIUM,
+                    color=flet.colors.SECONDARY,
+                ),
+                flet.Text(
+                    "What meal do you want to consume?",
+                    style=flet.TextThemeStyle.TITLE_SMALL,
+                    color=flet.colors.SECONDARY,
+                ),
+
                 flet.Row(
                     controls=[
                         flet.ElevatedButton(
                             ref=self.breakfast_button_ref,
                             content=flet.Row(controls=[
-                                flet.Text("Breakfast"),
+                                flet.Text(
+                                    "Breakfast",
+                                ),
                                 flet.ProgressRing(
                                     ref=self.breakfast_progress_ring_ref,
                                     height=20,
@@ -104,7 +114,9 @@ class FaceContainerView(flet.UserControl):
                         flet.ElevatedButton(
                             ref=self.lunch_button_ref,
                             content=flet.Row(controls=[
-                                flet.Text("Lunch"),
+                                flet.Text(
+                                    "Lunch",
+                                ),
                                 flet.ProgressRing(
                                     ref=self.lunch_progress_ring_ref,
                                     height=20,
@@ -137,10 +149,12 @@ class FaceContainerView(flet.UserControl):
                 flet.Text(
                     "Welcome to office meal service!",
                     style=flet.TextThemeStyle.TITLE_LARGE,
+                    color=flet.colors.SECONDARY,
                 ),
                 flet.Text(
                     "Please scan your face to access the meal options.",
                     style=flet.TextThemeStyle.TITLE_MEDIUM,
+                    color=flet.colors.SECONDARY,
                 ),
 
             ]
@@ -152,12 +166,12 @@ class FaceContainerView(flet.UserControl):
                 flet.Text(
                     "We apologize for any inconvenience caused, but it appears that you have not booked a meal for today.",
                     style=flet.TextThemeStyle.BODY_LARGE,
-                    color=flet.colors.RED_ACCENT_400,
+                    color=flet.colors.ON_ERROR_CONTAINER,
                 ),
                 flet.Text(
                     f"Employee ID: {employee_id}",
                     style=flet.TextThemeStyle.TITLE_LARGE,
-                    color=flet.colors.RED_ACCENT_700,
+                    color=flet.colors.ON_ERROR_CONTAINER,
                 ),
             ]
         )
@@ -196,6 +210,7 @@ class FaceContainerView(flet.UserControl):
             elif booked_meal == Meal.LUNCH:
                 is_lunch_disabled = employee_info.has_consumed(
                     meal=Meal.LUNCH)
+        self.meal_info_container_ref.current.bgcolor = flet.colors.ON_SECONDARY
         self.meal_info_container_ref.current.content = self._get_meal_info_control(
             employee_name=employee_info.name,
             is_breakfast_disable=is_breakfast_disabled,
@@ -205,6 +220,7 @@ class FaceContainerView(flet.UserControl):
 
     def show_booking_not_found_info(self, employee_id: str):
         self.meal_info_timestamp = time.time()
+        self.meal_info_container_ref.current.bgcolor = flet.colors.ERROR_CONTAINER
         self.meal_info_container_ref.current.content = self._get_booking_not_found_control(
             employee_id=employee_id,)
         self.update()
@@ -216,12 +232,14 @@ class FaceContainerView(flet.UserControl):
         # Calculate the difference in seconds
         diff_seconds = time.time() - self.meal_info_timestamp
         if diff_seconds > 10:
+            self.meal_info_container_ref.current.bgcolor = flet.colors.ON_SECONDARY
             self.meal_info_container_ref.current.content = self._get_description_control()
             self.update()
             self.currently_showing_employee = None
 
     def handle_meal_submission_result(self):
         self.meal_info_timestamp = None
+        self.meal_info_container_ref.current.bgcolor = flet.colors.ON_SECONDARY
         self.meal_info_container_ref.current.content = self._get_description_control()
         self.update()
         self.currently_showing_employee = None
