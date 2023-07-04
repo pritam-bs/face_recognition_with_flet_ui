@@ -2,7 +2,7 @@ import httpx
 from rx.subject.asyncsubject import AsyncSubject
 from app_errors.app_error import AppError, ErrorModel, AppException
 from typing import TypeVar, Union, List
-from pydantic import BaseModel, parse_raw_as
+from pydantic import BaseModel, TypeAdapter
 from logger import logger
 import json
 import html2text
@@ -67,7 +67,10 @@ class APIClient:
             response = self.client.request(
                 self.method, url, headers=self.headers, params=self.params, json=self.json)
             response.raise_for_status()  # Raise exception for non-2xx status codes
-            return parse_raw_as(model_type, response.content)
+            # return parse_raw_as(model_type, response.content)
+            response_data = TypeAdapter(
+                type=model_type).validate_json(response.content)
+            return response_data
         except httpx.InvalidURL:
             logger.error("Invaild api call")
             raise AppException(error=AppError.INVALID_INPUT.value)

@@ -80,7 +80,7 @@ target/
 /data/
 
 # exclude venv from source control by default
-/face_ui_venv/
+/.*venv*/
 
 # exclude models from source control by default
 /src/models/

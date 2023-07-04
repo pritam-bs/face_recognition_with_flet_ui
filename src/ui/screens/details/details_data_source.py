@@ -1,6 +1,6 @@
 from fletched.mvp import MvpDataSource
 from fletched.mvp import MvpModel
-from typing import Optional, List
+from typing import Optional, List, Union, Dict
 from ui.app import App
 from recognition.capture_image import CaptureImage
 from tqdm import tqdm
@@ -36,7 +36,7 @@ class DetailsModel(MvpModel):
 class DetailsDataSource(MvpDataSource):
     current_model = DetailsModel()
 
-    def __init__(self, *, app: App | None, route_params: dict[str, str]) -> None:
+    def __init__(self, *, app: Union[App, None], route_params: Dict[str, str]) -> None:
         super().__init__(app=app, route_params=route_params)
         self.opm_api_client = APIClient.create(settings.opm_base_url)
         self.capture_image = CaptureImage(rtspUrl=None)

@@ -10,7 +10,7 @@ from rx.subject.asyncsubject import AsyncSubject
 from pydantic import BaseModel
 from logger import logger
 from src.auth.auth_client import OAuthClient, AuthorizationResponse
-from typing import Optional
+from typing import Optional, Union, Dict
 
 
 class MessageModel(BaseModel):
@@ -18,10 +18,10 @@ class MessageModel(BaseModel):
 
 
 class LoginModel(MvpModel):
-    is_loading: Optional[bool] = False
-    verification_url: Optional[str]
-    expires_in: Optional[int]
-    user_code: Optional[str]
+    is_loading: Optional[bool] = None
+    verification_url: Optional[str] = None
+    expires_in: Optional[int] = None
+    user_code: Optional[str] = None
 
 
 class LoginDataSource(MvpDataSource):
@@ -30,7 +30,7 @@ class LoginDataSource(MvpDataSource):
     api_client = APIClient.create("http://demo6931875.mockable.io")
     auth_client = OAuthClient()
 
-    def __init__(self, *, app: App | None, route_params: dict[str, str]) -> None:
+    def __init__(self, *, app: Union[App, None], route_params: Dict[str, str]) -> None:
         super().__init__(app=app, route_params=route_params)
         self.app = app
 

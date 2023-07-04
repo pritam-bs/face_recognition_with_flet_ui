@@ -4,10 +4,24 @@ import os
 import tensorflow as tf
 from sklearn.preprocessing import normalize
 from absl import logging
+from logger import logger
 
-gpus = tf.config.experimental.list_physical_devices("GPU")
-for gpu in gpus:
-    tf.config.experimental.set_memory_growth(gpu, True)
+# gpus = tf.config.experimental.list_physical_devices("GPU")
+# for gpu in gpus:
+#     tf.config.experimental.set_memory_growth(gpu, True)
+
+gpus = tf.config.list_physical_devices('GPU')
+gpu_id = 0
+if gpus:
+    # Restrict TensorFlow to only use only one GPU based on gpu_id
+    try:
+        tf.config.set_visible_devices(gpus[gpu_id], 'GPU')
+        logical_gpus = tf.config.list_logical_devices('GPU')
+        logger.debug(len(gpus), "Physical GPUs,",
+                     len(logical_gpus), "Logical GPU")
+    except RuntimeError as e:
+        # Visible devices must be set before GPUs have been initialized
+        logger.debug(e)
 
 
 class ArcFaceGenerator:

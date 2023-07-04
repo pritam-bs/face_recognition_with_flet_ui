@@ -11,6 +11,7 @@ from fletched.mvp.presenter import MvpPresenter
 from fletched.mvp.protocols import MvpPresenterProtocol
 from fletched.mvp.renderer import MvpRenderer
 from fletched.routed_app import PageNotFoundView, ViewBuilder
+from typing import Dict
 
 
 @dataclass
@@ -30,7 +31,7 @@ class ViewConfig:
 
 
 class MvpView(Abstract, ft.View):
-    ref_map = abstract_class_property(dict[str, ft.Ref])
+    ref_map = abstract_class_property(Dict[str, ft.Ref])
     config = abstract_class_property(ViewConfig)
 
     def __init__(self) -> None:
@@ -52,7 +53,7 @@ class MvpViewBuilder(Abstract, ViewBuilder):
     view_class = abstract_class_property(Type[MvpView])
     presenter_class = abstract_class_property(Type[MvpPresenter])
 
-    def build_view(self, route_params: dict[str, str]) -> ft.View:
+    def build_view(self, route_params: Dict[str, str]) -> ft.View:
 
         if (
             not hasattr(self, "data_source")

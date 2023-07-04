@@ -8,10 +8,11 @@ import repath
 from fletched.routed_app.page_not_found import PageNotFoundView
 from fletched.routed_app.state import CustomAppState
 from fletched.routed_app.view_builder import ViewBuilder
+from typing import Union, List
 
 
 class RoutedApp:
-    state: defaultdict | CustomAppState
+    state: Union[defaultdict, CustomAppState]
 
     def __init__(
         self,
@@ -21,7 +22,7 @@ class RoutedApp:
     ) -> None:
         self.page = page
         self.unauthorized_return_route: str = unauthorized_return_route
-        self.last_unauthorized_route: str | None = None
+        self.last_unauthorized_route: Union[str, None] = None
         self.route_pattern_to_viewbuilder: dict[str, ViewBuilder] = {}
 
         if not custom_state:
@@ -30,7 +31,7 @@ class RoutedApp:
         self.page.on_route_change = self._append_view
         self.page.on_view_pop = self._pop_view
 
-    def add_view_builders(self, view_builder_classes: list[Type[ViewBuilder]]) -> None:
+    def add_view_builders(self, view_builder_classes: List[Type[ViewBuilder]]) -> None:
         for view_builder_class in view_builder_classes:
             view_builder = view_builder_class(
                 page=self.page, unauthorized_return_route=self.unauthorized_return_route

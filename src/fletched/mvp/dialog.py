@@ -8,27 +8,28 @@ from pydantic import BaseModel
 
 from fletched.mvp.protocols import MvpPresenterProtocol
 from fletched.mvp.renderer import MvpRenderer
+from typing import Union, Dict, List
 
 
 @dataclass
 class DialogConfig:
-    disabled: bool | None = None
-    visible: bool | None = None
+    disabled: Union[bool, None] = None
+    visible: Union[bool, None] = None
     data: Any = None
     open: bool = False
     modal: bool = False
-    title: ft.Control | None = None
+    title: Union[ft.Control, None] = None
     title_padding: ft.PaddingValue = None
     content_padding: ft.PaddingValue = None
     actions_padding: ft.PaddingValue = None
 
 
 class MvpDialog(Abstract, ft.UserControl):
-    ref_map = abstract_class_property(dict[str, ft.Ref])
+    ref_map = abstract_class_property(Dict[str, ft.Ref])
     config = abstract_class_property(DialogConfig)
 
     def __init__(
-        self, presenter: MvpPresenterProtocol, ref: ft.Ref | None = None
+        self, presenter: MvpPresenterProtocol, ref: Union[ft.Ref, None] = None
     ) -> None:
         super().__init__(ref=ref)
         self.dialog = ft.AlertDialog(**asdict(self.config))
@@ -41,11 +42,11 @@ class MvpDialog(Abstract, ft.UserControl):
         return self.dialog
 
     @abstractmethod
-    def get_content(self) -> ft.Control | None:
+    def get_content(self) -> Union[ft.Control, None]:
         ...
 
     @abstractmethod
-    def get_actions(self) -> list[ft.Control] | None:
+    def get_actions(self) -> Union[List[ft.Control], None]:
         ...
 
     def render(self, model: BaseModel) -> None:

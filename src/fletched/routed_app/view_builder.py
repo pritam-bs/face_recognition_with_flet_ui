@@ -1,21 +1,22 @@
 from abc import ABC, abstractmethod
 from typing import Any, Callable
+from typing import Union, Dict
 
 import flet as ft
 
 
 class ViewBuilder(ABC):
-    route: str | None = None
-    auth_func: Callable[..., bool] | None = None
+    route: Union[str, None] = None
+    auth_func: Union[Callable[..., bool], None] = None
 
     def __init__(
-        self, *, page: ft.Page, route: str | None = None, unauthorized_return_route: str
+        self, *, page: ft.Page, route: Union[str, None] = None, unauthorized_return_route: str
     ) -> None:
 
         self.page: ft.Page = page
         self.unauthorized_return_route = unauthorized_return_route
         if route:
-            self.route: str | None = route
+            self.route: Union[str, None] = route
         self.__view_func: Callable[..., ft.View] = self.build_view
 
     @property
@@ -30,7 +31,7 @@ class ViewBuilder(ABC):
         self.__view_func = func
 
     @abstractmethod
-    def build_view(self, route_params: dict[str, str]) -> ft.View:
+    def build_view(self, route_params: Dict[str, str]) -> ft.View:
         ...
 
     def _set_app(self, app) -> None:
@@ -42,7 +43,8 @@ class ViewBuilder(ABC):
                 ft.TextButton(
                     text="""You are not authorized to access this.
                     Click this button to go to the login page.""",
-                    on_click=lambda e: self.page.go(self.unauthorized_return_route),
+                    on_click=lambda e: self.page.go(
+                        self.unauthorized_return_route),
                 ),
             ],
             vertical_alignment=ft.MainAxisAlignment.CENTER,

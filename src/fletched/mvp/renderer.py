@@ -2,14 +2,15 @@ import flet as ft
 from pydantic import BaseModel
 
 from fletched.mvp.error import ErrorMessage
+from typing import Dict
 
 
 class MvpRenderer:
-    def __init__(self, ref_map: dict[str, ft.Ref]) -> None:
+    def __init__(self, ref_map: Dict[str, ft.Ref]) -> None:
         self.ref_map = ref_map
 
     def render(self, model: BaseModel) -> None:
-        model_map = model.dict()
+        model_map = model.model_dump()
 
         for variable_name, ref in self.ref_map.items():
             model_field_content = model_map[variable_name]

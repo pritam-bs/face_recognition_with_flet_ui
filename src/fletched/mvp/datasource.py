@@ -4,12 +4,13 @@ from pydantic import BaseModel, ValidationError
 from fletched.mvp.error import ErrorMessage
 from fletched.mvp.observable import Observable
 from fletched.routed_app import RoutedApp
+from typing import Union, Dict
 
 
 class MvpDataSource(Abstract, Observable):
     current_model = abstract_class_property(BaseModel)
 
-    def __init__(self, *, app: RoutedApp | None, route_params: dict[str, str]) -> None:
+    def __init__(self, *, app: Union[RoutedApp, None], route_params: Dict[str, str]) -> None:
         super().__init__()
         self.model_class = type(self.current_model)
         self.route_params = route_params
@@ -22,7 +23,7 @@ class MvpDataSource(Abstract, Observable):
         ...
 
     def update_model_partial(self, changes: dict) -> bool:
-        model_map = self.current_model.dict()
+        model_map = self.current_model.model_dump()
         for k, v in model_map.items():
             changed_value = changes.get(k)
             if changed_value is not None:
