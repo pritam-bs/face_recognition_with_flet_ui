@@ -1,10 +1,6 @@
 from fletched.mvp import MvpDataSource
 from fletched.mvp import MvpModel, ErrorMessage
 from ui.app import App
-from pydantic import validator
-from flet.auth.providers.google_oauth_provider import GoogleOAuthProvider
-from settings import settings
-from httpx import HTTPStatusError
 from api.api_client import APIClient
 from rx.subject.asyncsubject import AsyncSubject
 from pydantic import BaseModel

@@ -1,19 +1,31 @@
 import os
 from dotenv import load_dotenv
-from pydantic_settings import BaseSettings, SettingsConfigDict
+# from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic import BaseSettings
 from pydantic import Field
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(
-        env_file='.env', env_file_encoding='utf-8', extra="ignore")
-    auth_client: str = Field(alias="AUTH_CLIENT_ID")
-    auth_client_secret: str = Field(alias="AUTH_CLIENT_SECRET")
-    auth_uri: str = Field(alias="AUTH_URI")
-    token_uri: str = Field(alias="TOKEN_URI")
-    project_id: str = Field(alias="PROJECT_ID")
-    log_level: str = Field(alias="LOG_LEVEL")
-    opm_base_url: str = Field(alias="OPM_BASE_URL")
+    class Config:
+        env_file: str
+        env_file_encoding = "utf-8"
+    auth_client: str = Field(env="AUTH_CLIENT_ID")
+    auth_client_secret: str = Field(env="AUTH_CLIENT_SECRET")
+    auth_uri: str = Field(env="AUTH_URI")
+    token_uri: str = Field(env="TOKEN_URI")
+    project_id: str = Field(env="PROJECT_ID")
+    log_level: str = Field(env="LOG_LEVEL")
+    opm_base_url: str = Field(env="OPM_BASE_URL")
+
+    # model_config = SettingsConfigDict(
+    #     env_file='.env', env_file_encoding='utf-8', extra="ignore")
+    # auth_client: str = Field(alias="AUTH_CLIENT_ID")
+    # auth_client_secret: str = Field(alias="AUTH_CLIENT_SECRET")
+    # auth_uri: str = Field(alias="AUTH_URI")
+    # token_uri: str = Field(alias="TOKEN_URI")
+    # project_id: str = Field(alias="PROJECT_ID")
+    # log_level: str = Field(alias="LOG_LEVEL")
+    # opm_base_url: str = Field(alias="OPM_BASE_URL")
 
 
 # Determine the environment dynamically

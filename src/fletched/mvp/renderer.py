@@ -10,7 +10,7 @@ class MvpRenderer:
         self.ref_map = ref_map
 
     def render(self, model: BaseModel) -> None:
-        model_map = model.model_dump()
+        model_map = model.dict()
 
         for variable_name, ref in self.ref_map.items():
             model_field_content = model_map[variable_name]

@@ -22,7 +22,7 @@ class KnnSearchProcessor:
         self.index_vs_id_dict = {int(k): v for k, v in loaded_index.items()}
 
     def search(self, embeddings):
-        unknown_person_embedding = embeddings[0, :].reshape(
+        unknown_person_embedding = embeddings.reshape(
             1, -1)
         distances, indices = self.knn_model.kneighbors(
             unknown_person_embedding)

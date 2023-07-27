@@ -7,8 +7,10 @@ import logging
 
 
 def main(page: Page):
-    logging.getLogger("flet_core").setLevel(logging.DEBUG)
-    logging.getLogger("flet").setLevel(logging.DEBUG)
+    logging.getLogger("flet_core").setLevel(logging.ERROR)
+    logging.getLogger("flet_runtime").setLevel(logging.ERROR)
+    logging.getLogger("flet").setLevel(logging.ERROR)
+    logging.basicConfig(level=logging.ERROR)
 
     page.theme = flet.Theme(color_scheme_seed="blue")
     page.window_min_height = 600
@@ -19,4 +21,4 @@ def main(page: Page):
     logger.debug("Called main")
 
 
-flet.app(target=main, port=6464, view=flet.FLET_APP_WEB)
+flet.app(target=main, port=6464, view=flet.FLET_APP)

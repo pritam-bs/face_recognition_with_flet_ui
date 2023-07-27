@@ -1,6 +1,7 @@
 from enum import Enum
 from typing import List, Union
-from pydantic import BaseModel, RootModel
+# from pydantic import BaseModel, RootModel
+from pydantic import BaseModel
 
 
 class Meal(str, Enum):
@@ -21,5 +22,8 @@ class Employee(BaseModel):
         return self.consumed_meals and meal in self.consumed_meals
 
 
-class EmployeeList(RootModel):
-    root: List[Employee]
+# class EmployeeList(RootModel):
+#     root: List[Employee]
+
+class EmployeeList(BaseModel):
+    __root__: List[Employee]

@@ -1,153 +1,99 @@
 import numpy as np
 import os
-import torch
-from recognition.fas.MiniFASNet import MiniFASNetV1, MiniFASNetV2, MiniFASNetV1SE, MiniFASNetV2SE
-from recognition.fas.fas_utility import parse_model_name, get_kernel
-from recognition.fas import transform as trans
-import torch.nn.functional as F
-from recognition.fas.crop_image import CropImage
-from logger import logger
+import onnxruntime as ort
+import cv2
+from scipy.special import softmax
 
 
 class FasProcessor:
-    modelMapping = {
-        'MiniFASNetV1': MiniFASNetV1,
-        'MiniFASNetV2': MiniFASNetV2,
-        'MiniFASNetV1SE': MiniFASNetV1SE,
-        'MiniFASNetV2SE': MiniFASNetV2SE
-    }
     model_dir = 'src/models/fas_detection'
-    model_name_v2 = "2.7_80x80_MiniFASNetV2.pth"
-    model_name_v1 = "4_0_0_80x80_MiniFASNetV1SE.pth"
-    model_v2 = None
-    model_v1 = None
-    scoreThreshold = 0.90
+    model_name_v2 = "2.7_80x80_MiniFASNetV2.onnx"
+    model_name_v1 = "4_0_0_80x80_MiniFASNetV1SE.onnx"
+    h_input = 80
+    w_input = 80
+
+    ort.set_default_logger_severity(0)
+    providers = [
+        "CPUExecutionProvider",
+        ('CUDAExecutionProvider', {
+            'device_id': 0,
+            'arena_extend_strategy': 'kNextPowerOfTwo',
+            'gpu_mem_limit': 1 * 1024 * 1024 * 1024,
+            'cudnn_conv_algo_search': 'EXHAUSTIVE',
+            'do_copy_in_default_stream': True
+        })
+    ]
 
     def __init__(self):
-        self.device = torch.device("cuda:{}".format(0)
-                                   if torch.cuda.is_available() else "cpu")
         self._load_model_v2(os.path.join(
             os.getcwd(), self.model_dir, self.model_name_v2))
-        self.model_v2.eval()
         self._load_model_v1(os.path.join(
             os.getcwd(), self.model_dir, self.model_name_v1))
-        self.model_v1.eval()
 
-    def _load_model_v2(self, modelPath):
-        # define model
-        model_name = os.path.basename(modelPath)
-        h_input, w_input, model_type, _ = parse_model_name(model_name)
-        self.kernel_size = get_kernel(h_input, w_input,)
-        self.model_v2 = self.modelMapping[model_type](
-            conv6_kernel=self.kernel_size).to(self.device)
+    def _load_model_v2(self, model_path):
+        session_options = ort.SessionOptions()
+        self.inference_session_v2 = ort.InferenceSession(
+            model_path, sess_options=session_options, providers=self.providers)
+        self.outputs_name_v2 = [
+            e.name for e in self.inference_session_v2.get_outputs()]
+        self.inference_session_v2.run(self.outputs_name_v2, {self.inference_session_v2.get_inputs()[0].name: [
+            np.zeros((3, self.h_input, self.w_input), np.float32)
+        ]})
 
-        # load model weight
-        state_dict = torch.load(modelPath, map_location=self.device)
-        keys = iter(state_dict)
-        first_layer_name = keys.__next__()
-        if first_layer_name.find('module.') >= 0:
-            from collections import OrderedDict
-            new_state_dict = OrderedDict()
-            for key, value in state_dict.items():
-                name_key = key[7:]
-                new_state_dict[name_key] = value
-            self.model_v2.load_state_dict(new_state_dict)
-        else:
-            self.model_v2.load_state_dict(state_dict)
-        return None
+    def _load_model_v1(self, model_path):
+        session_options = ort.SessionOptions()
+        self.inference_session_v1 = ort.InferenceSession(
+            model_path, sess_options=session_options, providers=self.providers)
+        self.outputs_name_v1 = [
+            e.name for e in self.inference_session_v1.get_outputs()]
+        self.inference_session_v1.run(self.outputs_name_v1, {self.inference_session_v1.get_inputs()[0].name: [
+            np.zeros((3, self.h_input, self.w_input), np.float32)
+        ]})
 
-    def _load_model_v1(self, modelPath):
-        # define model
-        model_name = os.path.basename(modelPath)
-        h_input, w_input, model_type, _ = parse_model_name(model_name)
-        self.kernel_size = get_kernel(h_input, w_input,)
-        self.model_v1 = self.modelMapping[model_type](
-            conv6_kernel=self.kernel_size).to(self.device)
+    def _predict_v2(self, imm_RGB):
+        resize_img = cv2.resize(imm_RGB, (self.w_input, self.h_input))
+        resize_image_channel_first = np.transpose(resize_img, (2, 0, 1))
+        face_imgs = (np.array([resize_image_channel_first])).astype(np.float32)
+        batch_size = len(face_imgs)
+        sample_shape = face_imgs[0].shape
+        sample_dtype = face_imgs[0].dtype
+        batch_array = np.empty(
+            (batch_size,) + sample_shape, dtype=sample_dtype)
+        for i, sample in enumerate(face_imgs):
+            batch_array[i] = sample
 
-        # load model weight
-        state_dict = torch.load(modelPath, map_location=self.device)
-        keys = iter(state_dict)
-        first_layer_name = keys.__next__()
-        if first_layer_name.find('module.') >= 0:
-            from collections import OrderedDict
-            new_state_dict = OrderedDict()
-            for key, value in state_dict.items():
-                name_key = key[7:]
-                new_state_dict[name_key] = value
-            self.model_v1.load_state_dict(new_state_dict)
-        else:
-            self.model_v1.load_state_dict(state_dict)
-        return None
+        outputs = self.inference_session_v2.run(self.outputs_name_v2, {
+                                                self.inference_session_v2.get_inputs()[0].name: batch_array})
+        return outputs[0]
 
-    def _predict_v2(self, imm_RGB, bbox):
-        h_input, w_input, model_type, scale = parse_model_name(
-            self.model_name_v2)
+    def _predict_v1(self, imm_RGB):
+        resize_img = cv2.resize(imm_RGB, (self.w_input, self.h_input))
+        resize_image_channel_first = np.transpose(resize_img, (2, 0, 1))
+        face_imgs = (np.array([resize_image_channel_first])).astype(np.float32)
+        batch_size = len(face_imgs)
+        sample_shape = face_imgs[0].shape
+        sample_dtype = face_imgs[0].dtype
+        batch_array = np.empty(
+            (batch_size,) + sample_shape, dtype=sample_dtype)
+        for i, sample in enumerate(face_imgs):
+            batch_array[i] = sample
 
-        image_cropper = CropImage()
-        crop_param = {
-            "org_img": imm_RGB,
-            "bbox": bbox,
-            "scale": scale,
-            "out_w": w_input,
-            "out_h": h_input,
-            "crop": True,
-        }
-        if scale is None:
-            crop_param["crop"] = False
-        cropped_image = image_cropper.crop(**crop_param)
+        outputs = self.inference_session_v1.run(self.outputs_name_v1, {
+                                                self.inference_session_v1.get_inputs()[0].name: batch_array})
+        return outputs[0]
 
-        test_transform = trans.Compose([
-            trans.ToTensor(),
-        ])
-        frame = test_transform(cropped_image)
-        frame = frame.unsqueeze(0).to(self.device)
-        with torch.no_grad():
-            result = self.model_v2.forward(frame)
-            result = F.softmax(result, dim=1).cpu().numpy()
-        return result
+    def liveness_detector(self, face_image, image_format="BGR"):
+        imm_RGB = face_image[:, :, ::-
+                             1] if image_format == "BGR" else face_image
 
-    def _predict_v1(self, imm_RGB, bbox):
-        h_input, w_input, model_type, scale = parse_model_name(
-            self.model_name_v1)
+        output_v1 = self._predict_v1(imm_RGB=imm_RGB)
+        output_v2 = self._predict_v2(imm_RGB=imm_RGB)
+        output_average = ((output_v1 + output_v2) / 2.0)
 
-        image_cropper = CropImage()
-        crop_param = {
-            "org_img": imm_RGB,
-            "bbox": bbox,
-            "scale": scale,
-            "out_w": w_input,
-            "out_h": h_input,
-            "crop": True,
-        }
-        if scale is None:
-            crop_param["crop"] = False
-        cropped_image = image_cropper.crop(**crop_param)
-
-        test_transform = trans.Compose([
-            trans.ToTensor(),
-        ])
-        frame = test_transform(cropped_image)
-        frame = frame.unsqueeze(0).to(self.device)
-        with torch.no_grad():
-            result = self.model_v1.forward(frame)
-            result = F.softmax(result, dim=1).cpu().numpy()
-        return result
-
-    def liveness_detector(self, frame, bbox, image_format="BGR"):
-        imm_RGB = frame[:, :, ::-1] if image_format == "BGR" else frame
-        prediction = np.zeros((1, 3))
-        # sum the prediction from single model's result
-        # get perdiction using model_v2
-
-        prediction += self._predict_v1(imm_RGB=imm_RGB, bbox=bbox)
-        prediction += self._predict_v2(imm_RGB=imm_RGB, bbox=bbox)
+        prediction = softmax(output_average)
         # label: face is true or fake
         label = np.argmax(prediction)
-        # value: the score of prediction
-        value = prediction[0][label]/2
-        if label == 1 and value > self.scoreThreshold:
-            # logger.debug("RealFace Score: {:.2f}".format(value))
+        if label == 1:
             return True
         else:
-            # logger.debug("FakeFace Score: {:.2f}".format(value))
             return False

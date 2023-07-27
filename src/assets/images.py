@@ -1,5 +1,6 @@
 from typing import Dict
-from assets.asset_model import AssetModel, AssetDict
+from pydantic import parse_file_as
+from assets.asset_model import AssetModel
 from logger import logger
 import json
 
@@ -19,7 +20,8 @@ class Images:
             json_data = json.load(file)
 
         # Validate and parse the JSON data using `model_validate_json`
-        asset_dict = AssetDict.model_validate(json_data).root
+        # asset_dict = AssetDict.model_validate(json_data).root
+        asset_dict = parse_file_as(Dict[str, AssetModel], path=self.file_path)
         self.camera_image_data = asset_dict["camera_image"].data
         self.camera_image_mime = asset_dict["camera_image"].mime
         logger.debug(self.camera_image_mime)

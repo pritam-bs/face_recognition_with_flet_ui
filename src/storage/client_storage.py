@@ -4,7 +4,8 @@ from data_models.employee import Employee
 from typing import List, Dict
 import json
 from pydantic.json import pydantic_encoder
-from pydantic import TypeAdapter
+# from pydantic import TypeAdapter
+from pydantic import parse_raw_as
 
 
 class ClientStorageKey(Enum):
@@ -18,7 +19,7 @@ class ClientStorage:
     def save_employee_list(self, employee_list: List[Employee]):
         # Create dictionary with employee_id as key and Employee object as value
         employee_dict = {
-            employee.employee_id: employee.model_dump() for employee in employee_list}
+            employee.employee_id: employee.dict() for employee in employee_list}
 
         # Convert dictionary to JSON string
         employee_dict_json = json.dumps(
@@ -30,8 +31,10 @@ class ClientStorage:
         employees_dict_json = self.page.client_storage.get(
             ClientStorageKey.employee_list_key.value)
         # Parse the JSON data into the specified type
-        employees_dict = TypeAdapter(
-            type=Dict[str, Employee]).validate_json(employees_dict_json)
+        # employees_dict = TypeAdapter(
+        #     type=Dict[str, Employee]).validate_json(employees_dict_json)
+        employees_dict = parse_raw_as(
+            (Dict[str, Employee]), employees_dict_json)
         return employees_dict
 
     def clear_employee_list(self):

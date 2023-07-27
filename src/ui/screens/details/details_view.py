@@ -1,6 +1,7 @@
 import flet
 
-from pydantic import BaseModel, TypeAdapter
+# from pydantic import BaseModel, TypeAdapter
+from pydantic import BaseModel, parse_obj_as
 from typing import List
 from data_models.employee import Employee
 from fletched.mvp import MvpView, ViewConfig
@@ -63,8 +64,10 @@ class DetailsView(MvpView, DetailsViewProtocol):
                 image_base64=image_base64)
 
         if model_map["employee_list"] is not None:
-            employees = TypeAdapter(type=List[Employee]).validate_python(
-                model_map["employee_list"])
+            # employees = TypeAdapter(type=List[Employee]).validate_python(
+            #     model_map["employee_list"])
+            employees = parse_obj_as(
+                List[Employee], model_map["employee_list"])
             if employees is not None and self.info_sidebar_view_ref.current is not None:
                 self.info_sidebar_view_ref.current.update_list(
                     employee_list=employees)
@@ -82,8 +85,7 @@ class DetailsView(MvpView, DetailsViewProtocol):
                     employee_id=employee_id)
 
         if model_map["meal_found"] is not None:
-            employee_info = TypeAdapter(
-                type=Employee).validate_python(model_map["meal_found"])
+            employee_info = parse_obj_as(Employee, model_map["meal_found"])
             if self.face_container_view_ref.current is not None:
                 self.face_container_view_ref.current.show_meal_info(
                     employee_info=employee_info)

@@ -1,13 +1,19 @@
 import os
 from dotenv import load_dotenv
-from pydantic_settings import BaseSettings, SettingsConfigDict
+# from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic import BaseSettings
 from pydantic import Field
 
 
 class AuthStoreSettings(BaseSettings):
-    model_config = SettingsConfigDict(
-        env_file='.env', env_file_encoding='utf-8', extra="ignore")
-    secret_key: str = Field(alias="AUTH_STORE_SECRET_KEY")
+    class Config:
+        env_file: str
+        env_file_encoding = "utf-8"
+        extra = "ignore"
+    secret_key: str = Field(env="AUTH_STORE_SECRET_KEY")
+    # model_config = SettingsConfigDict(
+    #     env_file='.env', env_file_encoding='utf-8', extra="ignore")
+    # secret_key: str = Field(alias="AUTH_STORE_SECRET_KEY")
 
 
 # Determine the environment dynamically
