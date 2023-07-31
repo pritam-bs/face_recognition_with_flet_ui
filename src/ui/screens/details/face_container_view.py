@@ -12,6 +12,7 @@ from typing import Union
 
 class FaceContainerView(flet.UserControl):
     MealSelectCallable = Callable[[any, Employee, Meal], None]
+    is_mounted = False
 
     def __init__(self, on_meal_select: MealSelectCallable, ref: Optional[Ref], expand: Union[None, bool, int] = None):
         super().__init__(ref=ref, expand=expand)
@@ -29,9 +30,11 @@ class FaceContainerView(flet.UserControl):
         self.currently_showing_employee = None
 
     def did_mount(self):
+        self.is_mounted = True
         self._start_meal_info_timmer()
 
     def will_unmount(self):
+        self.is_mounted = False
         self.meal_info_subscription.dispose()
 
     def build(self):
@@ -191,6 +194,8 @@ class FaceContainerView(flet.UserControl):
         self.on_meal_select(self.currently_showing_employee, Meal.LUNCH)
 
     def update_frame_image(self, image_base64):
+        if self.is_mounted is False:
+            return
         if self.frame_image_ref.current is not None and image_base64 is not None:
             self.frame_image_ref.current.src_base64 = image_base64
             self.update()

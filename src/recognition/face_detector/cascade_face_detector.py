@@ -1,7 +1,5 @@
 import os
 import cv2
-from PIL import Image
-from numpy import asarray
 
 
 class CascadeDetector:
@@ -14,16 +12,13 @@ class CascadeDetector:
         # Load the Haar Cascade face detection model
         self.face_cascade = cv2.CascadeClassifier(self.cascade_model_path)
 
-    def extract_face(self, image_array):
+    def extract_face(self, frame):
         try:
-            # Convert the image to grayscale
-            image = Image.fromarray(image_array)
-            gray_image = image.convert('L')
-            gray_image_array = asarray(gray_image)
+            gray_image = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
             # Detect faces in the image
             faces = self.face_cascade.detectMultiScale(
-                gray_image_array, scaleFactor=1.1, minNeighbors=5, minSize=(80, 80))
+                gray_image, scaleFactor=1.1, minNeighbors=5, minSize=(112, 112))
 
             # Find the largest face
             largest_face = None
@@ -34,14 +29,12 @@ class CascadeDetector:
                     largest_area = area
                     largest_face = (x, y, w, h)
 
-            # Extract the largest face and resize it to (160, 160)
+            # Extract the largest face and resize it
             if largest_face is not None:
                 (x, y, w, h) = largest_face
-                face_array = image_array[y:y+h, x:x+w]
-                image = Image.fromarray(face_array)
-                image = image.resize(self.image_size)
-                face_array = asarray(image)
-                return face_array, largest_face
+                face_image = frame[y:y+h, x:x+w]
+                face_image = cv2.resize(face_image, self.image_size)
+                return face_image, largest_face
             else:
                 return None, None
         except Exception as e:

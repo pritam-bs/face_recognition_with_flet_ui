@@ -21,4 +21,4 @@ def main(page: Page):
     logger.debug("Called main")
 
 
-flet.app(target=main, port=6464, view=flet.FLET_APP)
+flet.app(target=main, port=6464, view=flet.FLET_APP_WEB)

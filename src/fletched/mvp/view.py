@@ -12,6 +12,7 @@ from fletched.mvp.protocols import MvpPresenterProtocol
 from fletched.mvp.renderer import MvpRenderer
 from fletched.routed_app import PageNotFoundView, ViewBuilder
 from typing import Dict
+import weakref
 
 
 @dataclass
@@ -68,9 +69,10 @@ class MvpViewBuilder(Abstract, ViewBuilder):
 
         self.view_class.config.route = self.route
         self.view: ft.View = self.view_class()
+        view_weak_ref = weakref.ref(self.view)
         self.presenter = self.presenter_class(
             data_source=self.data_source,
-            view=self.view,
+            view=view_weak_ref,
         )
         self.presenter.build()
         self.view.render(self.data_source.current_model)

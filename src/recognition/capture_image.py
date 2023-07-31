@@ -2,14 +2,14 @@ import cv2
 
 
 class CaptureImage:
-    min_size = 300
+    max_width = 448
 
     def __init__(self, rtspUrl):
         self._init_camera(rtspUrl)
 
     def _init_camera(self, rtspUrl):
+        self.rtsp_url = rtspUrl
         if rtspUrl is not None:
-            self.rtsp_url = rtspUrl
             self.video_capture = cv2.VideoCapture(self.rtsp_url)
         else:
             self.video_capture = cv2.VideoCapture(0)
@@ -37,32 +37,58 @@ class CaptureImage:
             self.video_capture.release()
             self.video_capture = None
             return None
+        frame = self._resize_largest_with_aspect_ratio(
+            frame, max_width=self.max_width)
+        return frame
 
-        # Resize the image while keeping the aspect ratio fixed
-        if self.min_size is not None:
-            h, w = frame.shape[:2]
-            if min(h, w) < self.min_size:
-                if h < w:
-                    new_h = self.min_size
-                    new_w = int(new_h * (w / h))
-                else:
-                    new_w = self.min_size
-                    new_h = int(new_w * (h / w))
-                resized_frame = cv2.resize(
-                    frame, (new_w, new_h), interpolation=cv2.INTER_LINEAR)
+    def _resize_largest_with_aspect_ratio(self, image, max_width=None, max_height=None):
+        # Get the original dimensions of the image
+        height, width = image.shape[:2]
+
+        # Calculate the aspect ratio of the image
+        aspect_ratio = width / float(height)
+
+        if max_width is not None and max_height is not None:
+            # Both max width and max height are provided, calculate the dimensions
+            if max_width >= width and max_height >= height:
+                # Image is smaller than or equal to both max_width and max_height
+                return image
+
+            if max_width / aspect_ratio <= max_height:
+                new_width = max_width
+                new_height = int(new_width / aspect_ratio)
             else:
-                aspect_ratio = w / h
-                new_h = self.min_size
-                new_w = int(new_h * aspect_ratio)
-                if new_w > self.min_size:
-                    new_w = self.min_size
-                    new_h = int(new_w / aspect_ratio)
-                resized_frame = cv2.resize(
-                    frame, (new_w, new_h), interpolation=cv2.INTER_LINEAR)
+                new_height = max_height
+                new_width = int(new_height * aspect_ratio)
 
-            return resized_frame
+        elif max_width is not None:
+            # Only max width is provided, check if image width is smaller than max_width
+            if max_width >= width:
+                # Image width is smaller than or equal to max_width
+                return image
+
+            # Calculate new height based on aspect ratio
+            new_width = max_width
+            new_height = int(new_width / aspect_ratio)
+
+        elif max_height is not None:
+            # Only max height is provided, check if image height is smaller than max_height
+            if max_height >= height:
+                # Image height is smaller than or equal to max_height
+                return image
+
+            # Calculate new width based on aspect ratio
+            new_height = max_height
+            new_width = int(new_height * aspect_ratio)
+
         else:
-            return frame
+            # Both max width and max height are None, return the original image
+            return image
+
+        # Resize the image with the calculated dimensions
+        image = cv2.resize(image, (new_width, new_height))
+
+        return image
 
     def getFrame(self):
         frame = self._capture()

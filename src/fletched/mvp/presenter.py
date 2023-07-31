@@ -2,6 +2,7 @@ from dataclasses import dataclass
 
 from fletched.mvp.datasource import MvpDataSource
 from fletched.mvp.protocols import MvpViewProtocol
+from logger import logger
 
 
 @dataclass
@@ -15,7 +16,16 @@ class MvpPresenter:
         self.data_source.register(self.update_view)
 
     def build(self) -> None:
-        self.view.build(self)
+        view = self.view()
+        if view is not None:
+            view.build(self)
+        else:
+            logger.debug("View distroyed")
 
     def update_view(self) -> None:
-        self.view.render(self.data_source.current_model)
+        view = self.view()
+        if view is not None:
+            view.render(self.data_source.current_model)
+        else:
+            logger.debug("View distroyed")
+        del self.data_source.current_model

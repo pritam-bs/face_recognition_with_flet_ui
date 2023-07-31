@@ -69,7 +69,7 @@ class DetailsDataSource(MvpDataSource):
         if bbox is not None:
             # is_live = True
             is_live = self.fasProcessor.liveness_detector(
-                face_image=face_image, image_format="BGR")
+                face_image=face_image)
 
         self._update_image_for_viewing(
             frame=frame, bbox=bbox, is_live=is_live)
@@ -85,11 +85,8 @@ class DetailsDataSource(MvpDataSource):
         face_image = None
         bbox = None
         if frame is not None:
-            # for index, frame in tqdm(enumerate([frame]), total=len([frame]), desc="Face Extractor"):
-            for index, frame in enumerate([frame]):
-                face_image, bbox = self.cascade_detector.extract_face(
-                    image_array=frame)
-
+            face_image, bbox = self.cascade_detector.extract_face(
+                frame=frame)
         return face_image, bbox
 
     def _face_embedding_creator(self, face_image_list):

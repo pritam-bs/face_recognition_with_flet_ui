@@ -17,7 +17,8 @@ class ArcFaceGenerator:
             'gpu_mem_limit': 1 * 1024 * 1024 * 1024,
             'cudnn_conv_algo_search': 'EXHAUSTIVE',
             'do_copy_in_default_stream': True
-        })
+        }),
+        "CPUExecutionProvider",
     ]
     ort.set_default_logger_severity(0)
 
@@ -39,27 +40,11 @@ class ArcFaceGenerator:
             self.inference_session = model_path
 
     def get_feature_vectors(self, face_img):
-        if not isinstance(face_img, list):
-            face_img = [face_img]
-
         # preprocess input
-        image_list = ((np.array(face_img) - 127.5)
-                      * 0.0078125).astype(np.float32)
-
-        batch_size = len(image_list)
-        sample_shape = image_list[0].shape
-        sample_dtype = image_list[0].dtype
-
-        # create an empty batch with the correct shape and dtype
-        batch_array = np.empty(
-            (batch_size,) + sample_shape, dtype=sample_dtype)
-
-        # copy the image arrays into the batch
-        for i, sample in enumerate(image_list):
-            batch_array[i] = sample
-
+        face_img = ((np.array(face_img) - 127.5)
+                    * 0.0078125).astype(np.float32)
         outputs = [e.name for e in self.inference_session.get_outputs()]
         embeddings = self.inference_session.run(
-            outputs, {self.inference_session.get_inputs()[0].name: batch_array})
+            outputs, {self.inference_session.get_inputs()[0].name: face_img})
 
         return embeddings[0].flatten()
